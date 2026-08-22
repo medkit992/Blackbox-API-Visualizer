@@ -7,69 +7,34 @@
     <title>Blackbox API Visualizer</title>
 
     <link rel="stylesheet" href="./panel.css" />
+    <link rel="stylesheet" href="./graph.css" />
   </head>
 
   <body>
     <div class="app">
-      <!-- Top Bar -->
       <header class="topbar">
         <div class="topbar__brand">
           <h1>Blackbox</h1>
-
-          <span id="recording-status" class="recording-status">
-            Recording
-          </span>
+          <span id="recording-status" class="recording-status">Recording</span>
         </div>
 
         <div class="topbar__actions">
-          <button id="toggle-recording" type="button">
-            Pause
-          </button>
-
-          <button id="clear-requests" type="button">
-            Clear
-          </button>
+          <button id="toggle-recording" type="button">Pause</button>
+          <button id="clear-requests" type="button">Clear</button>
         </div>
       </header>
 
-      <!-- Filters -->
       <section class="toolbar">
         <div class="toolbar__filters" id="request-filters">
-          <button type="button" data-category="All" class="active">
-            All
-          </button>
-
-          <button type="button" data-category="Fetch">
-            Fetch
-          </button>
-
-          <button type="button" data-category="XHR">
-            XHR
-          </button>
-
-          <button type="button" data-category="Document">
-            Documents
-          </button>
-
-          <button type="button" data-category="Script">
-            JS
-          </button>
-
-          <button type="button" data-category="Stylesheet">
-            CSS
-          </button>
-
-          <button type="button" data-category="Image">
-            Images
-          </button>
-
-          <button type="button" data-category="WebSocket">
-            WS
-          </button>
-
-          <button type="button" data-category="Errors">
-            Errors
-          </button>
+          <button type="button" data-category="All" class="active">All</button>
+          <button type="button" data-category="Fetch">Fetch</button>
+          <button type="button" data-category="XHR">XHR</button>
+          <button type="button" data-category="Document">Documents</button>
+          <button type="button" data-category="Script">JS</button>
+          <button type="button" data-category="Stylesheet">CSS</button>
+          <button type="button" data-category="Image">Images</button>
+          <button type="button" data-category="WebSocket">WS</button>
+          <button type="button" data-category="Errors">Errors</button>
         </div>
 
         <div class="toolbar__search">
@@ -82,29 +47,15 @@
         </div>
       </section>
 
-      <!-- Request Summary -->
       <section class="summary-bar">
-        <span>
-          <strong id="request-count">0</strong>
-          requests
-        </span>
-
-        <span>
-          <strong id="transferred-size">0 B</strong>
-          transferred
-        </span>
-
-        <span>
-          <strong id="total-duration">0 ms</strong>
-          total
-        </span>
+        <span><strong id="request-count">0</strong> requests</span>
+        <span><strong id="transferred-size">0 B</strong> transferred</span>
+        <span><strong id="total-duration">0 ms</strong> total</span>
       </section>
 
-      <!-- Session Insights -->
       <section id="session-insights" class="session-insights">
         <header class="session-insights__header">
           <h2>Session Insights</h2>
-
           <button
             id="toggle-session-insights"
             type="button"
@@ -135,33 +86,31 @@
         </div>
       </section>
 
-      <!-- View Switch -->
       <section class="view-switch-bar">
         <div class="view-switch" id="view-switch">
-          <button type="button" data-view="requests" class="active">
-            Requests
-          </button>
-          <button type="button" data-view="graph">
-            Graph
-          </button>
+          <button type="button" data-view="requests" class="active">Requests</button>
+          <button type="button" data-view="graph">Graph</button>
         </div>
 
         <div class="graph-toolbar" id="graph-toolbar" hidden>
-          <button id="graph-errors-only" type="button">
-            Errors only
-          </button>
-          <button id="graph-collapse-all" type="button">
-            Collapse all
-          </button>
-          <button id="graph-fit" type="button">
-            Fit
-          </button>
+          <span id="graph-status" class="graph-toolbar__status" aria-live="polite"></span>
+
+          <label class="graph-toolbar__limit">
+            <span>Endpoints/domain</span>
+            <select id="graph-endpoint-limit" aria-label="Maximum endpoints shown per domain">
+              <option value="10">10</option>
+              <option value="25" selected>25</option>
+              <option value="50">50</option>
+            </select>
+          </label>
+
+          <button id="graph-errors-only" type="button">Errors only</button>
+          <button id="graph-collapse-all" type="button">Collapse all</button>
+          <button id="graph-fit" type="button">Fit</button>
         </div>
       </section>
 
-      <!-- Main Content -->
       <main class="workspace">
-        <!-- Request List -->
         <section id="request-panel" class="request-panel">
           <div id="session-filter-banner" class="session-filter-banner" hidden>
             <span id="session-filter-banner-text"></span>
@@ -180,34 +129,25 @@
                   <th>Time</th>
                 </tr>
               </thead>
-
-              <tbody id="request-list">
-                <!-- panel.ts inserts request rows here -->
-              </tbody>
+              <tbody id="request-list"></tbody>
             </table>
           </div>
 
           <div id="request-empty-state" class="empty-state">
             <h2>No requests captured yet</h2>
-            <p>
-              Network requests from the inspected page will appear here.
-            </p>
+            <p>Network requests from the inspected page will appear here.</p>
           </div>
         </section>
 
-        <!-- Graph View -->
         <section id="graph-panel" class="graph-panel" hidden>
           <div id="network-graph" class="network-graph"></div>
 
           <div id="graph-empty-state" class="empty-state">
             <h2>No requests captured yet</h2>
-            <p>
-              Network requests from the inspected page will appear here.
-            </p>
+            <p>Network requests from the inspected page will appear here.</p>
           </div>
         </section>
 
-        <!-- Request Inspector -->
         <aside id="request-details" class="details-panel" hidden>
           <header class="details-header">
             <div>
@@ -215,166 +155,70 @@
                 <span id="details-method"></span>
                 <span id="details-path"></span>
               </div>
-
               <div class="details-header__status">
                 <span id="details-status"></span>
                 <span id="details-status-text"></span>
               </div>
             </div>
 
-            <button
-              id="close-details"
-              type="button"
-              aria-label="Close request details"
-            >
-              ×
-            </button>
+            <button id="close-details" type="button" aria-label="Close request details">×</button>
           </header>
 
-          <!-- Detail Tabs -->
           <nav class="details-tabs" aria-label="Request details">
-            <button type="button" data-tab="overview" class="active">
-              Overview
-            </button>
-
-            <button type="button" data-tab="request">
-              Request
-            </button>
-
-            <button type="button" data-tab="response">
-              Response
-            </button>
-
-            <button type="button" data-tab="headers">
-              Headers
-            </button>
-
-            <button type="button" data-tab="timing">
-              Timing
-            </button>
+            <button type="button" data-tab="overview" class="active">Overview</button>
+            <button type="button" data-tab="request">Request</button>
+            <button type="button" data-tab="response">Response</button>
+            <button type="button" data-tab="headers">Headers</button>
+            <button type="button" data-tab="timing">Timing</button>
           </nav>
 
-          <!-- Overview -->
-          <section
-            id="tab-overview"
-            class="details-content"
-            data-tab-content="overview"
-          >
+          <section id="tab-overview" class="details-content" data-tab-content="overview">
             <div id="details-insights" class="insights-list"></div>
 
             <dl class="details-grid">
-              <div>
-                <dt>URL</dt>
-                <dd id="details-url"></dd>
-              </div>
-
-              <div>
-                <dt>Host</dt>
-                <dd id="details-host"></dd>
-              </div>
-
-              <div>
-                <dt>Type</dt>
-                <dd id="details-type"></dd>
-              </div>
-
-              <div>
-                <dt>Duration</dt>
-                <dd id="details-duration"></dd>
-              </div>
-
-              <div>
-                <dt>Response Size</dt>
-                <dd id="details-response-size"></dd>
-              </div>
-
-              <div>
-                <dt>Priority</dt>
-                <dd id="details-priority"></dd>
-              </div>
-
-              <div>
-                <dt>Initiator</dt>
-                <dd id="details-initiator"></dd>
-              </div>
-
-              <div>
-                <dt>Server IP</dt>
-                <dd id="details-server-ip"></dd>
-              </div>
+              <div><dt>URL</dt><dd id="details-url"></dd></div>
+              <div><dt>Host</dt><dd id="details-host"></dd></div>
+              <div><dt>Type</dt><dd id="details-type"></dd></div>
+              <div><dt>Duration</dt><dd id="details-duration"></dd></div>
+              <div><dt>Response Size</dt><dd id="details-response-size"></dd></div>
+              <div><dt>Priority</dt><dd id="details-priority"></dd></div>
+              <div><dt>Initiator</dt><dd id="details-initiator"></dd></div>
+              <div><dt>Server IP</dt><dd id="details-server-ip"></dd></div>
             </dl>
           </section>
 
-          <!-- Request -->
-          <section
-            id="tab-request"
-            class="details-content"
-            data-tab-content="request"
-            hidden
-          >
+          <section id="tab-request" class="details-content" data-tab-content="request" hidden>
             <section class="details-section">
               <h3>Query Parameters</h3>
-
               <div id="details-query"></div>
             </section>
-
             <section class="details-section">
               <h3>Request Body</h3>
-
               <pre id="details-request-body"></pre>
             </section>
           </section>
 
-          <!-- Response -->
-          <section
-            id="tab-response"
-            class="details-content"
-            data-tab-content="response"
-            hidden
-          >
+          <section id="tab-response" class="details-content" data-tab-content="response" hidden>
             <div class="response-toolbar">
               <span id="details-response-mime"></span>
-
-              <button id="load-response-body" type="button">
-                Load Response
-              </button>
+              <button id="load-response-body" type="button">Load Response</button>
             </div>
-
-            <pre id="details-response-body">
-Select "Load Response" to retrieve the response body.
-            </pre>
+            <pre id="details-response-body">Select "Load Response" to retrieve the response body.</pre>
           </section>
 
-          <!-- Headers -->
-          <section
-            id="tab-headers"
-            class="details-content"
-            data-tab-content="headers"
-            hidden
-          >
+          <section id="tab-headers" class="details-content" data-tab-content="headers" hidden>
             <section class="details-section">
               <h3>Request Headers</h3>
-
               <div id="details-request-headers"></div>
             </section>
-
             <section class="details-section">
               <h3>Response Headers</h3>
-
               <div id="details-response-headers"></div>
             </section>
           </section>
 
-          <!-- Timing -->
-          <section
-            id="tab-timing"
-            class="details-content"
-            data-tab-content="timing"
-            hidden
-          >
-            <div id="details-timings" class="timing-list">
-              <!-- Timing bars inserted by panel.ts -->
-            </div>
+          <section id="tab-timing" class="details-content" data-tab-content="timing" hidden>
+            <div id="details-timings" class="timing-list"></div>
           </section>
         </aside>
       </main>
