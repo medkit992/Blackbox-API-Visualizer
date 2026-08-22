@@ -1,0 +1,118 @@
+.consent-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+
+  display: grid;
+  place-items: center;
+  padding: 24px;
+
+  background: rgba(5, 7, 12, 0.82);
+  backdrop-filter: blur(10px);
+}
+
+.consent-overlay[hidden] {
+  display: none;
+}
+
+.consent-dialog {
+  width: min(560px, 100%);
+  padding: 24px;
+
+  border: 1px solid rgba(139, 92, 246, 0.45);
+  border-radius: 14px;
+
+  background: #11141b;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+}
+
+.consent-dialog__eyebrow {
+  margin: 0 0 8px;
+
+  color: #a78bfa;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.consent-dialog h2 {
+  margin: 0 0 12px;
+
+  color: #f3f4f6;
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+.consent-dialog p {
+  margin: 0 0 12px;
+
+  color: #b7bfd0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.consent-dialog strong {
+  color: #f3f4f6;
+}
+
+.consent-dialog__notice {
+  padding: 12px 14px;
+
+  border: 1px solid #252a35;
+  border-radius: 8px;
+
+  background: #0b0d12;
+}
+
+.consent-dialog__link {
+  display: inline-flex;
+  margin-top: 2px;
+
+  color: #a78bfa;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.consent-dialog__link:hover {
+  text-decoration: underline;
+}
+
+.consent-dialog__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  margin-top: 20px;
+}
+
+.consent-dialog__actions button {
+  min-height: 34px;
+  padding: 0 14px;
+}
+
+#consent-accept {
+  border-color: #7c3aed;
+  background: #6d28d9;
+  color: #fff;
+}
+
+#consent-accept:hover {
+  background: #7c3aed;
+}
+
+#consent-revoke {
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #fca5a5;
+}
+
+#consent-revoke:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+#toggle-recording:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
