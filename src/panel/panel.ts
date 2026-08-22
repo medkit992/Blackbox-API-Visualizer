@@ -1,20 +1,27 @@
 import requests, { requestsUpdated, setCapturePaused } from "../network/capture.js";
-import type { NormalizedRequest } from "../network/types.js";
+import type { GraphNode, NormalizedRequest } from "../network/types.js";
 import parseRequest, { normalizeRequest } from "../network/parser.js";
 import { analyzeRequest, getIssueSeverity } from "../network/analyzer.js";
 import { analyzeSession, getSessionIssueSeverity } from "../network/sessionAnalyzer.js";
+import { buildNetworkGraph } from "../network/graphBuilder.js";
+import { buildGraphView } from "../network/graphView.js";
 import cytoscape from "cytoscape";
-import type { Core as CytoscapeCore, ElementDefinition, StylesheetStyle } from "cytoscape";
-import { buildNetworkGraph, getDomainNodeId } from "../network/graphBuilder.js";
-import type { GraphNode } from "../network/types.js";
+import type {
+  Core as CytoscapeCore,
+  ElementDefinition,
+  StylesheetStyle,
+} from "cytoscape";
 
-// Refreshed on load and after navigation so the Graph view's root node reflects the inspected page
+const normalizedRequests: NormalizedRequest[] = [];
+const rawRequestsById = new Map<string, chrome.devtools.network.Request>();
+
 let inspectedPageUrl = "";
 
 function refreshInspectedPageUrl(): void {
   chrome.devtools.inspectedWindow.eval("location.href", (result) => {
     if (typeof result === "string") {
       inspectedPageUrl = result;
+      scheduleGraphRender(false);
     }
   });
 }
@@ -26,14 +33,11 @@ chrome.devtools.network.onNavigated.addListener(() => {
   normalizedRequests.length = 0;
   rawRequestsById.clear();
   expandedDomains.clear();
+  resetGraphState();
   refreshInspectedPageUrl();
 
   document.dispatchEvent(new CustomEvent("pageReloaded"));
 });
-
-const normalizedRequests: NormalizedRequest[] = [];
-// Keeps the original DevTools request around so its captured content can be read via getContent()
-const rawRequestsById = new Map<string, chrome.devtools.network.Request>();
 
 requestsUpdated.addEventListener("updated", () => {
   const newRequests = requests.slice(normalizedRequests.length);
@@ -63,11 +67,8 @@ const emptyState = document.getElementById("request-empty-state");
 const requestFilters = document.getElementById("request-filters");
 let isEmptyStateVisible = true;
 
-// "All" and "Errors" are pseudo-categories layered on top of RequestCategory/RequestOutcome
 type RequestFilter = "All" | "Errors" | NormalizedRequest["category"];
 let activeFilter: RequestFilter = "All";
-
-// Set when a Session Insight card is clicked, to isolate the request list to just those requests
 let isolatedRequestIds: Set<string> | null = null;
 
 function matchesFilter(request: NormalizedRequest, filter: RequestFilter): boolean {
@@ -84,40 +85,47 @@ function renderRequestList(): void {
   if (requestCount) {
     requestCount.textContent = normalizedRequests.length.toString();
   }
+
   if (transferredBytes) {
     const totalBytes = normalizedRequests.reduce(
-        (total, request) => total + request.responseSize,
-        0
+      (total, request) => total + request.responseSize,
+      0
     );
     transferredBytes.textContent = `${(totalBytes / 1024).toFixed(2)} KB`;
   }
+
   if (totalDuration) {
     const elapsedTime = getElapsedNetworkTime(normalizedRequests);
     totalDuration.textContent = `${(elapsedTime / 1000).toFixed(2)} s`;
   }
+
   if (requestList) {
     const filteredRequests = isolatedRequestIds
       ? normalizedRequests.filter((request) => isolatedRequestIds!.has(request.id))
       : normalizedRequests.filter((request) => matchesFilter(request, activeFilter));
 
     requestList.innerHTML = filteredRequests
-        .map(
-            (request) =>
-                `<tr data-request-id="${request.id}" class="${isolatedRequestIds ? "request-row--highlighted" : ""}"><td>${request.method}</td><td>${request.url}</td><td>${request.status}</td><td>${request.category}</td><td>${(request.responseSize/ 1024).toFixed(2)} bytes</td><td>${(request.duration/ 1000).toFixed(3)} s</td></tr>`
-        )
-        .join("");
+      .map(
+        (request) =>
+          `<tr data-request-id="${escapeHtml(request.id)}" class="${isolatedRequestIds ? "request-row--highlighted" : ""}">
+            <td>${escapeHtml(request.method)}</td>
+            <td>${escapeHtml(request.url)}</td>
+            <td>${request.status}</td>
+            <td>${escapeHtml(request.category)}</td>
+            <td>${(request.responseSize / 1024).toFixed(2)} KB</td>
+            <td>${(request.duration / 1000).toFixed(3)} s</td>
+          </tr>`
+      )
+      .join("");
 
     isEmptyStateVisible = filteredRequests.length === 0;
     if (emptyState) {
-        emptyState.style.display = isEmptyStateVisible ? "block" : "none";
+      emptyState.style.display = isEmptyStateVisible ? "block" : "none";
     }
   }
 
   renderSessionInsights();
-
-  if (graphPanel && !graphPanel.hidden) {
-    renderGraph();
-  }
+  scheduleGraphRender(false);
 }
 
 document.addEventListener("normalizedRequestsUpdated", renderRequestList);
@@ -160,7 +168,9 @@ clearRequestsButton?.addEventListener("click", () => {
   requests.length = 0;
   normalizedRequests.length = 0;
   rawRequestsById.clear();
+  expandedDomains.clear();
   clearIsolatedRequests();
+  resetGraphState();
   renderRequestList();
 });
 
@@ -188,7 +198,7 @@ function isolateRequests(requestIds: string[], label: string): void {
   isolatedRequestIds = new Set(requestIds);
 
   if (sessionFilterBanner && sessionFilterBannerText) {
-    sessionFilterBannerText.textContent = `Filtered to ${requestIds.length} related request${requestIds.length === 1 ? "" : "s"} \u2014 ${label}`;
+    sessionFilterBannerText.textContent = `Filtered to ${requestIds.length} related request${requestIds.length === 1 ? "" : "s"} — ${label}`;
     sessionFilterBanner.hidden = false;
   }
 
@@ -321,18 +331,23 @@ const graphEmptyState = document.getElementById("graph-empty-state");
 const graphErrorsOnlyButton = document.getElementById("graph-errors-only");
 const graphCollapseAllButton = document.getElementById("graph-collapse-all");
 const graphFitButton = document.getElementById("graph-fit");
+const graphStatus = document.getElementById("graph-status");
+const graphEndpointLimitSelect = document.getElementById(
+  "graph-endpoint-limit"
+) as HTMLSelectElement | null;
+
+const GRAPH_MAX_DOMAINS = 40;
+const GRAPH_RENDER_INTERVAL_MS = 120;
 
 let cy: CytoscapeCore | null = null;
 let showErrorsOnly = false;
-// Domain node ids whose endpoint children should currently be shown
-const expandedDomains = new Set<string>();
+let graphEndpointLimit = Number(graphEndpointLimitSelect?.value ?? 25);
+let graphRenderTimer: number | undefined;
+let graphPendingFit = false;
+let graphHasRendered = false;
+let lastGraphTopology = "";
 
-const GRAPH_LAYOUT = {
-  name: "breadthfirst",
-  directed: true,
-  padding: 24,
-  spacingFactor: 1.4,
-} as const;
+const expandedDomains = new Set<string>();
 
 const GRAPH_STYLE: StylesheetStyle[] = [
   {
@@ -343,7 +358,7 @@ const GRAPH_STYLE: StylesheetStyle[] = [
       "text-wrap": "wrap",
       "text-valign": "center",
       "text-halign": "center",
-      "text-max-width": "120px",
+      "text-max-width": "150px",
       width: "label",
       height: "label",
       padding: "10px",
@@ -365,6 +380,13 @@ const GRAPH_STYLE: StylesheetStyle[] = [
     },
   },
   {
+    selector: "node[type='endpoint']",
+    style: {
+      "font-size": 9,
+      padding: "8px",
+    },
+  },
+  {
     selector: "node[?hasErrors]",
     style: {
       "border-color": "#ef4444",
@@ -381,7 +403,7 @@ const GRAPH_STYLE: StylesheetStyle[] = [
   {
     selector: "edge",
     style: {
-      width: 1.5,
+      width: "mapData(requestCount, 1, 100, 1, 5)",
       "line-color": "#303746",
       "target-arrow-color": "#303746",
       "target-arrow-shape": "triangle",
@@ -389,15 +411,32 @@ const GRAPH_STYLE: StylesheetStyle[] = [
       label: "data(label)",
       "font-size": 9,
       color: "#8b93a7",
+      opacity: 0.8,
       "text-background-color": "#0b0d12",
       "text-background-opacity": 1,
       "text-background-padding": "2px",
     },
   },
+  {
+    selector: "edge[?hasErrors]",
+    style: {
+      "line-color": "#7f1d1d",
+      "target-arrow-color": "#ef4444",
+    },
+  },
 ];
 
+function truncateLabel(value: string, maxLength = 54): string {
+  if (value.length <= maxLength) {
+    return value;
+  }
+
+  const half = Math.floor((maxLength - 1) / 2);
+  return `${value.slice(0, half)}…${value.slice(-half)}`;
+}
+
 function buildNodeLabel(node: GraphNode): string {
-  const lines = [node.label];
+  const lines = [truncateLabel(node.label)];
 
   if (node.type !== "page") {
     lines.push(`${node.requestCount} request${node.requestCount === 1 ? "" : "s"}`);
@@ -410,6 +449,56 @@ function buildNodeLabel(node: GraphNode): string {
   }
 
   return lines.join("\n");
+}
+
+function getGraphLayout(nodeCount: number) {
+  return {
+    name: "breadthfirst",
+    directed: true,
+    roots: "#page",
+    fit: false,
+    animate: false,
+    padding: 30,
+    avoidOverlap: true,
+    nodeDimensionsIncludeLabels: true,
+    spacingFactor: nodeCount > 80 ? 0.9 : nodeCount > 40 ? 1.0 : 1.25,
+  } as const;
+}
+
+function buildTopologyKey(elements: ElementDefinition[]): string {
+  return elements
+    .map((element) => String(element.data?.id ?? ""))
+    .sort()
+    .join("|");
+}
+
+function resetGraphState(): void {
+  if (graphRenderTimer !== undefined) {
+    window.clearTimeout(graphRenderTimer);
+    graphRenderTimer = undefined;
+  }
+  graphPendingFit = false;
+  graphHasRendered = false;
+  lastGraphTopology = "";
+  cy?.elements().remove();
+}
+
+function scheduleGraphRender(fit: boolean): void {
+  if (!graphPanel || graphPanel.hidden) {
+    return;
+  }
+
+  graphPendingFit ||= fit;
+  if (graphRenderTimer !== undefined) {
+    return;
+  }
+
+  graphRenderTimer = window.setTimeout(() => {
+    graphRenderTimer = undefined;
+    const shouldFit = graphPendingFit;
+    graphPendingFit = false;
+    renderGraph(shouldFit);
+  }, GRAPH_RENDER_INTERVAL_MS);
 }
 
 function switchToView(view: "requests" | "graph"): void {
@@ -428,7 +517,10 @@ function switchToView(view: "requests" | "graph"): void {
   }
 
   if (view === "graph") {
-    renderGraph();
+    requestAnimationFrame(() => {
+      cy?.resize();
+      renderGraph(!graphHasRendered);
+    });
   }
 }
 
@@ -443,75 +535,131 @@ viewSwitch?.addEventListener("click", (event) => {
 graphErrorsOnlyButton?.addEventListener("click", () => {
   showErrorsOnly = !showErrorsOnly;
   graphErrorsOnlyButton.classList.toggle("active", showErrorsOnly);
-  renderGraph();
+  renderGraph(true);
+});
+
+graphEndpointLimitSelect?.addEventListener("change", () => {
+  graphEndpointLimit = Math.max(Number(graphEndpointLimitSelect.value) || 25, 1);
+  renderGraph(true);
 });
 
 graphCollapseAllButton?.addEventListener("click", () => {
   expandedDomains.clear();
-  renderGraph();
+  renderGraph(true);
 });
 
 graphFitButton?.addEventListener("click", () => {
+  cy?.resize();
   cy?.fit(undefined, 30);
 });
 
-function renderGraph(): void {
+if (networkGraphContainer && typeof ResizeObserver !== "undefined") {
+  let resizeFrame: number | undefined;
+  const graphResizeObserver = new ResizeObserver(() => {
+    if (!cy || !graphPanel || graphPanel.hidden) {
+      return;
+    }
+
+    if (resizeFrame !== undefined) {
+      cancelAnimationFrame(resizeFrame);
+    }
+
+    resizeFrame = requestAnimationFrame(() => {
+      resizeFrame = undefined;
+      cy?.resize();
+    });
+  });
+
+  graphResizeObserver.observe(networkGraphContainer);
+}
+
+function renderGraph(fit = false): void {
   if (!networkGraphContainer) {
     return;
   }
 
+  if (graphRenderTimer !== undefined) {
+    window.clearTimeout(graphRenderTimer);
+    graphRenderTimer = undefined;
+  }
+
   if (normalizedRequests.length === 0) {
     cy?.elements().remove();
+    lastGraphTopology = "";
+    graphHasRendered = false;
+    if (graphStatus) {
+      graphStatus.textContent = "No network activity";
+    }
     if (graphEmptyState) {
       graphEmptyState.style.display = "block";
     }
     return;
   }
+
   if (graphEmptyState) {
     graphEmptyState.style.display = "none";
   }
 
   const graph = buildNetworkGraph(normalizedRequests, inspectedPageUrl);
+  const graphView = buildGraphView(graph, {
+    expandedDomainIds: expandedDomains,
+    errorsOnly: showErrorsOnly,
+    maxDomains: GRAPH_MAX_DOMAINS,
+    maxEndpointsPerDomain: graphEndpointLimit,
+  });
 
-  // Endpoint nodes only appear once their parent domain has been expanded
-  const visibleNodes = graph.nodes.filter(
-    (node) => node.type !== "endpoint" || (node.host && expandedDomains.has(getDomainNodeId(node.host)))
-  );
-  const shownNodes = showErrorsOnly
-    ? visibleNodes.filter((node) => node.type === "page" || node.errorCount > 0)
-    : visibleNodes;
-  const shownNodeIds = new Set(shownNodes.map((node) => node.id));
-  const shownEdges = graph.edges.filter(
-    (edge) => shownNodeIds.has(edge.source) && shownNodeIds.has(edge.target)
-  );
+  if (graphStatus) {
+    const hiddenParts: string[] = [];
+    if (graphView.hiddenDomainCount > 0) {
+      hiddenParts.push(`${graphView.hiddenDomainCount} domains hidden`);
+    }
+    if (graphView.hiddenEndpointCount > 0) {
+      hiddenParts.push(`${graphView.hiddenEndpointCount} endpoints hidden`);
+    }
+
+    graphStatus.textContent = `${graphView.nodes.length} nodes · ${graphView.edges.length} connections${
+      hiddenParts.length ? ` · ${hiddenParts.join(" · ")}` : ""
+    }`;
+  }
 
   const elements: ElementDefinition[] = [
-    ...shownNodes.map((node) => ({
+    ...graphView.nodes.map((node) => ({
       data: {
         id: node.id,
         label: buildNodeLabel(node),
         type: node.type,
         hasErrors: node.errorCount > 0,
         requestIds: node.requestIds,
+        requestCount: node.requestCount,
+        transferredBytes: node.transferredBytes,
+        errorCount: node.errorCount,
         host: node.host,
       },
     })),
-    ...shownEdges.map((edge) => ({
+    ...graphView.edges.map((edge) => ({
       data: {
         id: edge.id,
         source: edge.source,
         target: edge.target,
         label: `${edge.requestCount}`,
+        requestCount: edge.requestCount,
+        hasErrors: edge.errorCount > 0,
       },
     })),
   ];
+
+  const topology = buildTopologyKey(elements);
+  const topologyChanged = topology !== lastGraphTopology;
 
   if (!cy) {
     cy = cytoscape({
       container: networkGraphContainer,
       elements,
       style: GRAPH_STYLE,
-      layout: GRAPH_LAYOUT,
+      layout: { name: "preset" },
+      minZoom: 0.08,
+      maxZoom: 3,
+      wheelSensitivity: 0.18,
     });
 
     cy.on("tap", "node", (event) => {
@@ -525,7 +673,7 @@ function renderGraph(): void {
         } else {
           expandedDomains.add(domainId);
         }
-        renderGraph();
+        renderGraph(true);
         return;
       }
 
@@ -536,13 +684,40 @@ function renderGraph(): void {
         isolateRequests(requestIds, label.split("\n")[0]);
       }
     });
+  } else if (topologyChanged) {
+    cy.batch(() => {
+      cy?.elements().remove();
+      cy?.add(elements);
+    });
   } else {
-    cy.elements().remove();
-    cy.add(elements);
-    cy.layout(GRAPH_LAYOUT).run();
+    cy.batch(() => {
+      for (const element of elements) {
+        const id = String(element.data?.id ?? "");
+        if (!id) {
+          continue;
+        }
+        cy?.getElementById(id).data(element.data ?? {});
+      }
+    });
+  }
+
+  lastGraphTopology = topology;
+  graphHasRendered = true;
+
+  if (topologyChanged) {
+    const layout = cy.layout(getGraphLayout(graphView.nodes.length));
+    if (fit) {
+      cy.one("layoutstop", () => {
+        cy?.resize();
+        cy?.fit(undefined, 30);
+      });
+    }
+    layout.run();
+  } else if (fit) {
+    cy.resize();
+    cy.fit(undefined, 30);
   }
 }
-
 
 function getElapsedNetworkTime(requests: NormalizedRequest[]): number {
   if (requests.length === 0) {
@@ -550,21 +725,18 @@ function getElapsedNetworkTime(requests: NormalizedRequest[]): number {
   }
 
   const firstStart = Math.min(
-    ...requests.map((request) =>
-      new Date(request.startedAt).getTime()
-    )
+    ...requests.map((request) => new Date(request.startedAt).getTime())
   );
 
   const lastFinish = Math.max(
-    ...requests.map((request) =>
-      new Date(request.startedAt).getTime() + request.duration
+    ...requests.map(
+      (request) => new Date(request.startedAt).getTime() + request.duration
     )
   );
 
   return lastFinish - firstStart;
 }
 
-// Issue titles/summaries can embed response-controlled text (status text, redirect URL, etc.)
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
@@ -599,57 +771,28 @@ function displayRequestDetails(request: NormalizedRequest): void {
   const detailsRequestBody = document.getElementById("details-request-body");
   const loadResponseButton = document.getElementById("load-response-body");
   const detailsResponseBody = document.getElementById("details-response-body");
+  const detailsResponseMime = document.getElementById("details-response-mime");
   const detailsRequestHeaders = document.getElementById("details-request-headers");
   const detailsResponseHeaders = document.getElementById("details-response-headers");
   const detailsTimings = document.getElementById("details-timings");
 
-  if (detailsMethod) {
-    detailsMethod.textContent = request.method;
-  }
-
-  if (detailsPath) {
-    detailsPath.textContent = request.path;
-  }
-
-  if (detailsStatus) {
-    detailsStatus.textContent = request.status.toString();
-  }
-
-  if (detailsStatusText) {
-    detailsStatusText.textContent = request.statusText;
-  }
-  
-  if (detailsUrl) {
-    detailsUrl.textContent = request.url;
-  }
-
-  if (detailsHost) {
-    detailsHost.textContent = request.host;
-  }
-
-  if (detailsType) {
-    detailsType.textContent = request.category;
-  }
-
+  if (detailsMethod) detailsMethod.textContent = request.method;
+  if (detailsPath) detailsPath.textContent = request.path;
+  if (detailsStatus) detailsStatus.textContent = request.status.toString();
+  if (detailsStatusText) detailsStatusText.textContent = request.statusText;
+  if (detailsUrl) detailsUrl.textContent = request.url;
+  if (detailsHost) detailsHost.textContent = request.host;
+  if (detailsType) detailsType.textContent = request.category;
   if (detailsDuration) {
     detailsDuration.textContent = `${(request.duration / 1000).toFixed(3)} s`;
   }
-
   if (detailsResponseSize) {
     detailsResponseSize.textContent = `${(request.responseSize / 1024).toFixed(2)} KB`;
   }
-
-  if (detailsPriority) {
-    detailsPriority.textContent = request.priority || "N/A";
-  }
-
-  if (detailsInitiator) {
-    detailsInitiator.textContent = request.initiator?.type || "N/A";
-  }
-
-  if (detailsServerIP) {
-    detailsServerIP.textContent = request.serverIPAddress || "N/A";
-  }
+  if (detailsPriority) detailsPriority.textContent = request.priority || "N/A";
+  if (detailsInitiator) detailsInitiator.textContent = request.initiator?.type || "N/A";
+  if (detailsServerIP) detailsServerIP.textContent = request.serverIPAddress || "N/A";
+  if (detailsResponseMime) detailsResponseMime.textContent = request.responseMimeType || "Unknown";
 
   if (detailsInsights) {
     const analysis = analyzeRequest(request);
@@ -670,25 +813,34 @@ function displayRequestDetails(request: NormalizedRequest): void {
   }
 
   if (detailsQuery) {
-    detailsQuery.textContent = request.query.length > 0 ? JSON.stringify(request.query, null, 2) : "N/A";
+    detailsQuery.textContent =
+      request.query.length > 0 ? JSON.stringify(request.query, null, 2) : "N/A";
   }
 
   if (detailsRequestBody) {
-    detailsRequestBody.textContent = request.requestBody ? JSON.stringify(request.requestBody, null, 2) : "N/A";
+    detailsRequestBody.textContent = request.requestBody
+      ? request.requestBody
+      : "N/A";
   }
-  
+
   if (loadResponseButton && detailsResponseBody) {
-    detailsResponseBody.textContent = "Select \"Load Response\" to retrieve the response body.";
-    // Reassigning onclick (vs. addEventListener) avoids stacking a new listener per render
+    detailsResponseBody.textContent =
+      'Select "Load Response" to retrieve the response body.';
     loadResponseButton.onclick = () => loadResponseBody(request, detailsResponseBody);
   }
 
   if (detailsRequestHeaders) {
-    detailsRequestHeaders.textContent = request.requestHeaders.length > 0 ? JSON.stringify(request.requestHeaders, null, 2) : "N/A";
+    detailsRequestHeaders.textContent =
+      request.requestHeaders.length > 0
+        ? JSON.stringify(request.requestHeaders, null, 2)
+        : "N/A";
   }
 
   if (detailsResponseHeaders) {
-    detailsResponseHeaders.textContent = request.responseHeaders.length > 0 ? JSON.stringify(request.responseHeaders, null, 2) : "N/A";
+    detailsResponseHeaders.textContent =
+      request.responseHeaders.length > 0
+        ? JSON.stringify(request.responseHeaders, null, 2)
+        : "N/A";
   }
 
   if (detailsTimings) {
@@ -708,7 +860,6 @@ function loadResponseBody(
     return;
   }
 
-  // Reads the response DevTools already captured instead of re-sending the request
   rawRequest.getContent((content, encoding) => {
     if (!content) {
       detailsResponseBody.textContent = "(empty response body)";
