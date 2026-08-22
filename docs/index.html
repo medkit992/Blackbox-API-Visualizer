@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>Blackbox API Visualizer Privacy Policy</title>
+    <style>
+      :root {
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: #e5e7eb;
+        background: #0b0d12;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        background:
+          radial-gradient(circle at top left, rgba(109, 40, 217, 0.18), transparent 34rem),
+          #0b0d12;
+        color: #cbd5e1;
+        line-height: 1.7;
+      }
+
+      main {
+        width: min(860px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 56px 0 80px;
+      }
+
+      header {
+        margin-bottom: 36px;
+        padding-bottom: 28px;
+        border-bottom: 1px solid #252a35;
+      }
+
+      .eyebrow {
+        margin: 0 0 8px;
+        color: #a78bfa;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      h1, h2 { color: #f8fafc; line-height: 1.25; }
+      h1 { margin: 0 0 10px; font-size: clamp(30px, 5vw, 46px); }
+      h2 { margin-top: 34px; font-size: 20px; }
+
+      p, li { font-size: 15px; }
+      ul { padding-left: 22px; }
+
+      a { color: #a78bfa; }
+      strong { color: #f8fafc; }
+
+      .summary {
+        padding: 18px 20px;
+        border: 1px solid rgba(139, 92, 246, 0.35);
+        border-radius: 12px;
+        background: rgba(17, 20, 27, 0.84);
+      }
+
+      .muted { color: #94a3b8; }
+
+      footer {
+        margin-top: 48px;
+        padding-top: 24px;
+        border-top: 1px solid #252a35;
+        color: #94a3b8;
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="eyebrow">Blackbox API Visualizer</p>
+        <h1>Privacy Policy</h1>
+        <p class="muted">Effective August 22, 2026</p>
+      </header>
+
+      <p>
+        Blackbox API Visualizer ("Blackbox") is a Chrome DevTools extension for inspecting,
+        analyzing, and visualizing network traffic from the web page currently being inspected.
+        This policy explains what information Blackbox can access, how that information is used,
+        and what controls are available to you.
+      </p>
+
+      <section class="summary">
+        <strong>Summary</strong>
+        <ul>
+          <li>Blackbox processes captured network data locally inside the DevTools extension.</li>
+          <li>Blackbox does not send captured network traffic to Blackbox-operated servers.</li>
+          <li>Blackbox does not sell captured data or use it for advertising, profiling, credit decisions, or unrelated purposes.</li>
+          <li>Network capture does not begin until you explicitly choose <strong>Start capturing</strong>.</li>
+          <li>You can pause capture, clear the current session, or revoke capture access from the <strong>Privacy</strong> control.</li>
+        </ul>
+      </section>
+
+      <h2>Information Blackbox Can Process</h2>
+      <p>
+        When you grant network access and use Blackbox on an inspected page, the extension can
+        process information exposed by the Chrome DevTools Network API, including:
+      </p>
+      <ul>
+        <li>request URLs, hosts, paths, methods, and query parameters;</li>
+        <li>request and response headers;</li>
+        <li>cookies and authentication-related values that may appear in requests or responses;</li>
+        <li>request bodies and submitted payloads;</li>
+        <li>response status information, MIME types, redirects, and size metadata;</li>
+        <li>network timing, resource type, cache information, initiator information, connection information, and server IP addresses; and</li>
+        <li>response bodies when you explicitly select <strong>Load Response</strong>.</li>
+      </ul>
+      <p>
+        Depending on the website being inspected, this information may contain personal information,
+        authentication tokens, session identifiers, or other sensitive content. Blackbox displays this
+        information because inspecting the actual network exchange is the core function of the extension.
+      </p>
+
+      <h2>How Blackbox Uses This Information</h2>
+      <p>Blackbox uses captured network information only to provide its user-facing developer tools, including:</p>
+      <ul>
+        <li>the request list and request inspector;</li>
+        <li>request and response metadata views;</li>
+        <li>timing and performance information;</li>
+        <li>request-level diagnostics;</li>
+        <li>duplicate-request, polling, endpoint, domain, and error analysis;</li>
+        <li>session insights; and</li>
+        <li>the interactive network graph.</li>
+      </ul>
+      <p>
+        Blackbox does not use captured traffic for advertising, behavioral profiling, marketing,
+        eligibility decisions, or any purpose unrelated to network inspection.
+      </p>
+
+      <h2>Data Transmission and Sharing</h2>
+      <p>
+        Blackbox does not transmit captured network traffic to Blackbox-operated servers. Blackbox
+        does not sell captured network data and does not share captured network data with advertisers,
+        data brokers, or unrelated third parties. The extension analyzes the information locally in the
+        DevTools extension context on your device.
+      </p>
+
+      <h2>Storage and Retention</h2>
+      <p>
+        Captured request and session data is kept in memory for the active DevTools session so Blackbox
+        can render the request table, details, insights, and graph.
+      </p>
+      <ul>
+        <li>Choosing <strong>Clear</strong> removes the current captured session from Blackbox.</li>
+        <li>Navigating the inspected page resets the current captured session.</li>
+        <li>Closing the DevTools panel ends the in-memory session.</li>
+        <li>Response bodies are retrieved only after you explicitly select <strong>Load Response</strong>.</li>
+      </ul>
+      <p>
+        Blackbox stores a small local preference indicating whether you granted network-capture consent.
+        This preference contains no captured network traffic. You can remove it by choosing
+        <strong>Privacy → Revoke access</strong>, clearing the extension's local data, or uninstalling the extension.
+      </p>
+
+      <h2>Your Choices and Controls</h2>
+      <ul>
+        <li><strong>Start capturing</strong> — grants access and begins network capture.</li>
+        <li><strong>Not now</strong> — leaves network capture disabled.</li>
+        <li><strong>Pause / Resume</strong> — temporarily stops or resumes capture after consent has been granted.</li>
+        <li><strong>Clear</strong> — removes the current captured session from the Blackbox interface.</li>
+        <li><strong>Privacy → Revoke access</strong> — disables future capture and clears the current Blackbox session.</li>
+        <li><strong>Load Response</strong> — retrieves a response body only when you explicitly request it.</li>
+      </ul>
+
+      <h2>Security</h2>
+      <p>
+        Network traffic may contain credentials, tokens, cookies, personal data, or application secrets.
+        Treat information displayed in Blackbox as sensitive and avoid sharing screenshots or other material
+        that exposes confidential values. Blackbox is designed to minimize exposure by processing captured
+        traffic locally rather than sending it to a Blackbox backend.
+      </p>
+
+      <h2>Children's Privacy</h2>
+      <p>Blackbox is a developer tool and is not directed to children.</p>
+
+      <h2>Changes to This Policy</h2>
+      <p>
+        This policy may be updated when Blackbox's data-handling behavior changes. Material changes will
+        be reflected in this public policy and in the project repository.
+      </p>
+
+      <h2>Contact</h2>
+      <p>
+        Privacy questions or concerns can be raised through the
+        <a href="https://github.com/medkit992/Blackbox-API-Visualizer/issues">Blackbox GitHub issue tracker</a>.
+      </p>
+
+      <footer>
+        <a href="https://github.com/medkit992/Blackbox-API-Visualizer">Blackbox API Visualizer on GitHub</a>
+      </footer>
+    </main>
+  </body>
+</html>
