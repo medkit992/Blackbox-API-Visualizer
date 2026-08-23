@@ -2,6 +2,16 @@
 
 [![CI](https://github.com/medkit992/Blackbox-API-Visualizer/actions/workflows/ci.yml/badge.svg)](https://github.com/medkit992/Blackbox-API-Visualizer/actions/workflows/ci.yml)
 
+## Release status
+
+| Status | Version | Channel | Health |
+| --- | --- | --- | --- |
+| **Latest Stable** | _None verified yet_ | — | — |
+| **Production candidate** | `v0.1.1` | Chrome Web Store verification pending | Pending verification |
+| **Retired** | `v0.1.0` | Chrome Web Store | **Broken — do not recommend** |
+
+`v0.1.1` becomes Blackbox's first **Stable** release only after the actual Chrome Web Store build passes the [release verification checklist](https://github.com/medkit992/Blackbox-API-Visualizer/issues/14). See the [release policy](docs/release-policy.md) and [current release status](docs/release-status.md) for the definitions of Development, Preview, Stable, Retired, distribution channels, release health, and the Stable release gate.
+
 Blackbox is an open-source Chromium DevTools extension for capturing, inspecting, analyzing, and visualizing the network activity of the page you are debugging.
 
 Instead of treating every request as an isolated row, Blackbox adds deterministic request insights, session-level pattern detection, and an interactive page → domain → endpoint graph.
@@ -131,15 +141,9 @@ Good contribution areas include:
 
 ## Roadmap
 
-Current direction after the initial DevTools MVP:
+See [Roadmap: Blackbox API Visualizer v1.0.0](https://github.com/medkit992/Blackbox-API-Visualizer/issues/13) for the current planned product direction and v1 feature set.
 
-- richer graph drill-down and relationship analysis;
-- session import/export with automatic secret redaction;
-- improved WebSocket/EventSource inspection;
-- configurable analyzer thresholds;
-- request comparison and session comparison;
-- broader automated test coverage;
-- packaged browser releases.
+Current direction after the initial DevTools MVP includes richer visual explanation of request/response behavior, beginner-friendly diagnostics, response exploration, request relationship improvements, and controlled experimentation with captured requests.
 
 ## License
 
