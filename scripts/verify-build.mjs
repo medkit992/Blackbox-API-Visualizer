@@ -2,9 +2,12 @@ import { readFile, readdir } from "node:fs/promises";
 import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const distDirectory = new URL("../dist/", import.meta.url);
+const projectDirectory = new URL("../", import.meta.url);
+const distDirectory = new URL("dist/", projectDirectory);
 const distPath = fileURLToPath(distDirectory);
-const manifestPath = new URL("manifest.json", distDirectory);
+const packagePath = new URL("package.json", projectDirectory);
+const sourceManifestPath = new URL("public/manifest.json", projectDirectory);
+const distManifestPath = new URL("manifest.json", distDirectory);
 
 async function collectFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -22,14 +25,37 @@ async function collectFiles(directory) {
   return files;
 }
 
-const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
-const devtoolsPage = new URL(manifest.devtools_page, distDirectory);
+const packageJson = JSON.parse(await readFile(packagePath, "utf8"));
+const sourceManifest = JSON.parse(await readFile(sourceManifestPath, "utf8"));
+const distManifest = JSON.parse(await readFile(distManifestPath, "utf8"));
+const failures = [];
+
+const versionPattern = /^\d+(?:\.\d+){0,3}$/;
+
+if (!versionPattern.test(sourceManifest.version)) {
+  failures.push(
+    `public/manifest.json version must be a Chrome-compatible numeric version, got ${sourceManifest.version}`
+  );
+}
+
+if (packageJson.version !== sourceManifest.version) {
+  failures.push(
+    `Version mismatch: package.json=${packageJson.version}, public/manifest.json=${sourceManifest.version}`
+  );
+}
+
+if (distManifest.version !== sourceManifest.version) {
+  failures.push(
+    `Version mismatch: dist/manifest.json=${distManifest.version}, public/manifest.json=${sourceManifest.version}`
+  );
+}
+
+const devtoolsPage = new URL(distManifest.devtools_page, distDirectory);
 await readFile(devtoolsPage);
 
 const JavaScriptExtensions = new Set([".js", ".mjs"]);
 const files = await collectFiles(distPath);
 const bareImportPattern = /(?:from\s*|import\s*)["'](?![./]|chrome-extension:|https?:)[^"']+["']/g;
-const failures = [];
 
 for (const file of files) {
   if (!JavaScriptExtensions.has(extname(file))) continue;
@@ -40,9 +66,9 @@ for (const file of files) {
 }
 
 if (failures.length > 0) {
-  throw new Error(
-    `Production build contains unresolved package imports:\n${failures.join("\n")}`
-  );
+  throw new Error(`Production build verification failed:\n${failures.join("\n")}`);
 }
 
-console.log(`Verified extension build ${manifest.version}: no unresolved package imports.`);
+console.log(
+  `Verified extension build ${distManifest.version}: versions match and no unresolved package imports were found.`
+);
