@@ -1,8 +1,14 @@
 import {
+  backfillCapturedRequests,
   NETWORK_CONSENT_STORAGE_KEY,
   setCaptureEnabled,
   setCapturePaused,
 } from "../network/capture.js";
+
+// The consent overlay is intentionally visible in CSS until this module runs.
+// If a bad production package ships without executable JavaScript, users see a
+// privacy/capture failure instead of a misleading static "Recording" UI.
+document.documentElement.classList.add("blackbox-initialized");
 
 const consentOverlay = document.getElementById("network-consent");
 const consentAcceptButton = document.getElementById("consent-accept");
@@ -77,11 +83,23 @@ function hideConsentDialog(): void {
   }
 }
 
+function backfillExistingTraffic(): void {
+  void backfillCapturedRequests().catch((error: unknown) => {
+    console.error("Blackbox failed to backfill the DevTools network log.", error);
+  });
+}
+
 const initialConsent = hasConsent();
 setCaptureEnabled(initialConsent);
 updateCaptureUi(initialConsent);
 
-if (!initialConsent) {
+if (initialConsent) {
+  hideConsentDialog();
+
+  // Wait for both panel modules to finish registering their listeners before
+  // dispatching the initial HAR backfill event.
+  window.addEventListener("load", backfillExistingTraffic, { once: true });
+} else {
   showConsentDialog("first-run");
 }
 
@@ -91,6 +109,7 @@ consentAcceptButton?.addEventListener("click", () => {
   setCapturePaused(false);
   updateCaptureUi(true);
   hideConsentDialog();
+  backfillExistingTraffic();
 });
 
 consentDeclineButton?.addEventListener("click", () => {
