@@ -3,6 +3,8 @@ export const requestsUpdated = new EventTarget();
 
 export const NETWORK_CONSENT_STORAGE_KEY = "blackbox-network-consent-v1";
 
+type HarEntry = chrome.devtools.network.HARLog["entries"][number];
+
 function readInitialCaptureConsent(): boolean {
   try {
     return localStorage.getItem(NETWORK_CONSENT_STORAGE_KEY) === "granted";
@@ -11,13 +13,31 @@ function readInitialCaptureConsent(): boolean {
   }
 }
 
-function requestIdentity(request: chrome.devtools.network.Request): string {
+function requestIdentity(request: HarEntry): string {
   return [
     request.startedDateTime?.toString() ?? "",
     request.request?.method ?? "",
     request.request?.url ?? "",
     String(request.time ?? ""),
   ].join("|");
+}
+
+function toCapturedRequest(entry: HarEntry): chrome.devtools.network.Request {
+  const possibleRequest = entry as chrome.devtools.network.Request;
+  if (typeof possibleRequest.getContent === "function") {
+    return possibleRequest;
+  }
+
+  return Object.assign({}, entry, {
+    getContent(
+      callback: (content: string, encoding: string) => void
+    ): void {
+      callback(
+        entry.response.content.text ?? "",
+        entry.response.content.encoding ?? ""
+      );
+    },
+  }) as chrome.devtools.network.Request;
 }
 
 let seenRequestKeys = new Set<string>();
@@ -81,8 +101,8 @@ export function backfillCapturedRequests(): Promise<number> {
     chrome.devtools.network.getHAR((harLog) => {
       let added = 0;
 
-      for (const request of harLog.entries) {
-        if (appendRequest(request, false)) {
+      for (const entry of harLog.entries) {
+        if (appendRequest(toCapturedRequest(entry), false)) {
           added += 1;
         }
       }
