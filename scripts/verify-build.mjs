@@ -8,6 +8,7 @@ const distPath = fileURLToPath(distDirectory);
 const packagePath = new URL("package.json", projectDirectory);
 const sourceManifestPath = new URL("public/manifest.json", projectDirectory);
 const distManifestPath = new URL("manifest.json", distDirectory);
+const panelPagePath = new URL("src/panel/panel.html", distDirectory);
 
 async function collectFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -51,18 +52,42 @@ if (distManifest.version !== sourceManifest.version) {
 }
 
 const devtoolsPage = new URL(distManifest.devtools_page, distDirectory);
-await readFile(devtoolsPage);
+const devtoolsHtml = await readFile(devtoolsPage, "utf8");
+const panelHtml = await readFile(panelPagePath, "utf8");
 
 const JavaScriptExtensions = new Set([".js", ".mjs"]);
+const TypeScriptExtensions = new Set([".ts", ".tsx"]);
 const files = await collectFiles(distPath);
 const bareImportPattern = /(?:from\s*|import\s*)["'](?![./]|chrome-extension:|https?:)[^"']+["']/g;
+const sourceModuleReferencePattern = /(?:src|href)=["'][^"']+\.tsx?["']/i;
+const bundledScriptPattern = /<script[^>]+src=["'][^"']+\.js["']/i;
 
 for (const file of files) {
-  if (!JavaScriptExtensions.has(extname(file))) continue;
+  const extension = extname(file);
+
+  if (TypeScriptExtensions.has(extension)) {
+    failures.push(`Production bundle contains TypeScript source file: ${file}`);
+    continue;
+  }
+
+  if (!JavaScriptExtensions.has(extension)) continue;
 
   const source = await readFile(file, "utf8");
   const imports = source.match(bareImportPattern);
   if (imports) failures.push(`${file}: ${imports.join(", ")}`);
+}
+
+for (const [name, html] of [
+  ["DevTools page", devtoolsHtml],
+  ["panel page", panelHtml],
+]) {
+  if (sourceModuleReferencePattern.test(html)) {
+    failures.push(`${name} still references a TypeScript source module.`);
+  }
+
+  if (!bundledScriptPattern.test(html)) {
+    failures.push(`${name} does not reference a bundled JavaScript asset.`);
+  }
 }
 
 if (failures.length > 0) {
@@ -70,5 +95,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  `Verified extension build ${distManifest.version}: versions match and no unresolved package imports were found.`
+  `Verified extension build ${distManifest.version}: versions match, HTML points to bundled JavaScript, no TypeScript source files are present, and no unresolved package imports were found.`
 );
