@@ -1,11 +1,11 @@
 {
   "name": "blackbox-api-visualizer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "An open-source Chrome DevTools extension for visualizing API traffic in real time.",
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && node scripts/verify-build.mjs",
     "watch": "vite build --watch",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.test.json",
     "test": "vitest run",
