@@ -11,6 +11,48 @@ function readInitialCaptureConsent(): boolean {
   }
 }
 
+function requestIdentity(request: chrome.devtools.network.Request): string {
+  return [
+    request.startedDateTime?.toString() ?? "",
+    request.request?.method ?? "",
+    request.request?.url ?? "",
+    String(request.time ?? ""),
+  ].join("|");
+}
+
+let seenRequestKeys = new Set<string>();
+let trackedRequestLength = 0;
+
+function syncSeenRequestKeys(): void {
+  if (requests.length < trackedRequestLength) {
+    seenRequestKeys = new Set(requests.map(requestIdentity));
+  }
+
+  trackedRequestLength = requests.length;
+}
+
+function appendRequest(
+  request: chrome.devtools.network.Request,
+  notify = true
+): boolean {
+  syncSeenRequestKeys();
+
+  const key = requestIdentity(request);
+  if (seenRequestKeys.has(key)) {
+    return false;
+  }
+
+  seenRequestKeys.add(key);
+  requests.push(request);
+  trackedRequestLength = requests.length;
+
+  if (notify) {
+    requestsUpdated.dispatchEvent(new Event("updated"));
+  }
+
+  return true;
+}
+
 // Capture is disabled until the user has explicitly granted access.
 let isCaptureEnabled = readInitialCaptureConsent();
 
@@ -22,9 +64,37 @@ chrome.devtools.network.onRequestFinished.addListener((request) => {
     return;
   }
 
-  requests.push(request);
-  requestsUpdated.dispatchEvent(new Event("updated"));
+  appendRequest(request);
 });
+
+/**
+ * Seed Blackbox from the requests already visible in the DevTools Network log.
+ * This prevents users from losing page-load traffic when they open the Blackbox
+ * panel after the inspected page has already made requests.
+ */
+export function backfillCapturedRequests(): Promise<number> {
+  if (!isCaptureEnabled || isCapturePaused) {
+    return Promise.resolve(0);
+  }
+
+  return new Promise((resolve) => {
+    chrome.devtools.network.getHAR((harLog) => {
+      let added = 0;
+
+      for (const request of harLog.entries) {
+        if (appendRequest(request, false)) {
+          added += 1;
+        }
+      }
+
+      if (added > 0) {
+        requestsUpdated.dispatchEvent(new Event("updated"));
+      }
+
+      resolve(added);
+    });
+  });
+}
 
 export function setCaptureEnabled(enabled: boolean): void {
   isCaptureEnabled = enabled;
