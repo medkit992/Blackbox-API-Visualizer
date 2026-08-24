@@ -107,4 +107,6 @@ Health: Working | Known issues | Broken
 ## Current early-release interpretation
 
 - **v0.1.0** — reached the Chrome Web Store, but the distributed build is known to be broken. Treat it as **Retired / Production / Broken**.
-- **v0.1.1** — current repository version and candidate to become the first Stable release. It must pass the Stable release gate using the actual Chrome Web Store build before being marked Stable.
+- **v0.1.1** — superseded by the capture-reliability patch and should no longer be the recommended build.
+- **v0.1.2** — verified working through the Chrome Web Store and treated as the current **Stable / Production / Working** release.
+- **v0.2.0** — feature-complete response-explorer release candidate. Treat it as **Preview / Local-Test / Working** until the exact packaged Chrome Web Store build passes the Stable release gate; then promote the same version to **Stable / Production / Working**.
