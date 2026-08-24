@@ -64,6 +64,9 @@ if (responseTab && responseToolbar && rawResponse) {
   let currentSelection: ResponseExplorerSelection | null = null;
 
   function setView(view: "tree" | "raw"): void {
+    if (!rawResponse) {
+      return;
+    }
     const showTree = view === "tree";
     tree.hidden = !showTree;
     rawResponse.hidden = showTree;
@@ -207,6 +210,9 @@ if (responseTab && responseToolbar && rawResponse) {
   }
 
   function renderResponse(): void {
+    if (!rawResponse) {
+      return;
+    }
     const body = rawResponse.textContent ?? "";
 
     if (body.includes('Select "Load Response"')) {
