@@ -13,8 +13,18 @@
   padding: 8px 0 10px;
 }
 
+.response-explorer__status {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-dim);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .response-explorer__view-toggle {
   display: inline-flex;
+  flex-shrink: 0;
   padding: 2px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -34,6 +44,11 @@
   color: var(--text);
 }
 
+.response-explorer__view-toggle button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .response-explorer__tree {
   flex: 1;
   min-height: 180px;
@@ -41,18 +56,91 @@
   padding: 6px 0;
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
+  background: var(--bg);
 }
 
 .response-explorer__placeholder {
   margin: 0;
-  padding: 16px 4px;
+  padding: 16px 8px;
   color: var(--text-muted);
   font-size: 11px;
   line-height: 1.5;
 }
 
+.response-tree__node {
+  min-width: max-content;
+}
+
+.response-tree__row {
+  display: grid;
+  grid-template-columns: 14px minmax(80px, auto) minmax(100px, 1fr);
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 26px;
+  padding: 3px 8px 3px calc(8px + (var(--tree-depth) * 14px));
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 11px;
+  text-align: left;
+}
+
+.response-tree__row:hover,
+.response-tree__row:focus-visible {
+  background: var(--surface-hover);
+}
+
+.response-tree__row:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.response-tree__disclosure {
+  color: var(--text-dim);
+  font-size: 14px;
+  text-align: center;
+}
+
+.response-tree__key {
+  color: var(--text);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.response-tree__value {
+  overflow: hidden;
+  color: var(--text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.response-tree__value--string {
+  color: #86efac;
+}
+
+.response-tree__value--number {
+  color: #93c5fd;
+}
+
+.response-tree__value--boolean {
+  color: #c4b5fd;
+}
+
+.response-tree__value--null {
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+.response-tree__value--object,
+.response-tree__value--array {
+  color: var(--text-dim);
+}
+
 .response-explorer__selection {
-  padding-top: 12px;
+  padding: 12px 0 2px;
 }
 
 .response-explorer__selection[hidden] {
@@ -112,12 +200,21 @@
 
 .response-explorer__path-row .response-explorer__field-value {
   flex: 1;
+  padding: 5px 7px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
 }
 
 .response-explorer__copy-path {
   flex-shrink: 0;
-  padding: 4px 8px;
+  padding: 5px 8px;
   font-size: 10px;
+}
+
+.response-explorer__copy-path:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .response-explorer__raw[hidden],
@@ -130,4 +227,22 @@
   min-height: 180px;
   margin: 0;
   overflow: auto;
+}
+
+@media (max-width: 520px) {
+  .response-explorer__status {
+    display: none;
+  }
+
+  .response-tree__row {
+    grid-template-columns: 14px minmax(72px, auto) minmax(80px, 1fr);
+  }
+
+  .response-explorer__path-row {
+    flex-direction: column;
+  }
+
+  .response-explorer__copy-path {
+    align-self: flex-end;
+  }
 }
