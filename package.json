@@ -1,6 +1,6 @@
 {
   "name": "blackbox-api-visualizer",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "An open-source Chrome DevTools extension for visualizing API traffic in real time.",
   "private": true,
   "type": "module",
