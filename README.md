@@ -6,15 +6,25 @@
 
 | Status | Version | Channel | Health |
 | --- | --- | --- | --- |
-| **Latest Stable** | _None verified yet_ | — | — |
-| **Production candidate** | `v0.1.1` | Chrome Web Store verification pending | Pending verification |
+| **Latest Stable** | `v0.1.2` | Chrome Web Store | Working |
+| **Release candidate** | `v0.2.0` | Local / GitHub packaging | Working in local verification; Web Store verification pending |
 | **Retired** | `v0.1.0` | Chrome Web Store | **Broken — do not recommend** |
 
-`v0.1.1` becomes Blackbox's first **Stable** release only after the actual Chrome Web Store build passes the [release verification checklist](https://github.com/medkit992/Blackbox-API-Visualizer/issues/14). See the [release policy](docs/release-policy.md) and [current release status](docs/release-status.md) for the definitions of Development, Preview, Stable, Retired, distribution channels, release health, and the Stable release gate.
+`v0.2.0` adds Blackbox's first visual response explorer. It should remain **Preview / release candidate** until the exact packaged build is submitted to the Chrome Web Store and the distributed build passes the [Stable release gate](docs/release-policy.md). See the [current release status](docs/release-status.md) for the source-of-truth release classification.
 
 Blackbox is an open-source Chromium DevTools extension for capturing, inspecting, analyzing, and visualizing the network activity of the page you are debugging.
 
-Instead of treating every request as an isolated row, Blackbox adds deterministic request insights, session-level pattern detection, and an interactive page → domain → endpoint graph.
+Instead of treating every request as an isolated row, Blackbox adds deterministic request insights, session-level pattern detection, an interactive page → domain → endpoint graph, and a response explorer that turns nested JSON into navigable JavaScript data paths.
+
+## What's new in v0.2.0
+
+- Adds a **Tree / Raw** response viewer inside the existing request Response tab.
+- Parses JSON responses locally and renders nested objects and arrays as a collapsible tree.
+- Shows value types and compact object/array summaries while preserving the raw response body.
+- Lets users select any response value and see the exact JavaScript access path, such as `data.results[0].title`.
+- Adds one-click **Copy Path** for the selected value.
+- Falls back cleanly for non-JSON, image, empty, loading, and unavailable response bodies.
+- Keeps response inspection local and continues using the response body already exposed by Chromium DevTools.
 
 ## What it does
 
@@ -23,6 +33,8 @@ Instead of treating every request as an isolated row, Blackbox adds deterministi
 - Filters traffic by resource type and errors.
 - Inspects request metadata, query parameters, headers, bodies, timing, priority, initiator, and server information.
 - Reads response bodies from the request already captured by DevTools rather than replaying the request.
+- Explores JSON responses as a collapsible tree with copyable JavaScript property paths.
+- Preserves a raw response view and gracefully handles non-JSON response types.
 - Flags useful per-request conditions such as authentication failures, rate limits, server failures, large payloads, redirects, cache hits, and slow requests.
 - Detects session-level patterns including duplicate bursts, polling, repeated errors, endpoint frequency, and domain traffic.
 - Visualizes traffic as page → domain → endpoint relationships with expandable domains.
@@ -113,7 +125,9 @@ request analyzer  session analyzer
             ↓
        graph view
             ↓
-      panel / Cytoscape
+       panel / Cytoscape
+            ↓
+     response explorer
 ```
 
 See [docs/architecture.md](docs/architecture.md) for the responsibilities and boundaries of each layer.
@@ -134,7 +148,7 @@ Good contribution areas include:
 
 - new deterministic request/session analyzers with low false-positive rates;
 - graph scalability and interaction improvements;
-- richer request inspection and formatting;
+- richer response exploration and formatting;
 - browser compatibility fixes;
 - tests and realistic network fixtures;
 - accessibility and keyboard navigation.
@@ -143,7 +157,7 @@ Good contribution areas include:
 
 See [Roadmap: Blackbox API Visualizer v1.0.0](https://github.com/medkit992/Blackbox-API-Visualizer/issues/13) for the current planned product direction and v1 feature set.
 
-Current direction after the initial DevTools MVP includes richer visual explanation of request/response behavior, beginner-friendly diagnostics, response exploration, request relationship improvements, and controlled experimentation with captured requests.
+The response explorer planned in issue #4 is implemented in v0.2.0. Current direction after this release includes richer visual request/response flow explanation, beginner-friendly diagnostics, request relationship improvements, application-side mismatch detection where observable, and controlled experimentation with captured requests.
 
 ## License
 
