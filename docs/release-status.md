@@ -4,14 +4,26 @@ This file is the human-readable source of truth for which Blackbox builds are re
 
 | Version | Stage | Channel | Health | Recommendation |
 | --- | --- | --- | --- | --- |
-| `v0.1.1` | Preview / production candidate | Local; Production verification pending | Unknown pending Web Store verification | Candidate to become the first Stable release |
+| `v0.2.0` | Preview / release candidate | Local / GitHub packaging; Production verification pending | Working in local verification | Test/package now; mark Stable only after Chrome Web Store verification |
+| `v0.1.2` | Stable | Production (Chrome Web Store) | Working | Current recommended production release until v0.2.0 passes production verification |
+| `v0.1.1` | Retired / superseded | Production history | Superseded by v0.1.2 | Do not recommend over v0.1.2 |
 | `v0.1.0` | Retired | Production (Chrome Web Store) | Broken | Do not recommend |
 
 ## Current recommendation
 
-There is **no formally verified Stable release yet**.
+`v0.1.2` is the current **Stable** production release.
 
-`v0.1.1` is the current repository version and should become the first Stable release only after the exact Chrome Web Store build passes [release verification issue #14](https://github.com/medkit992/Blackbox-API-Visualizer/issues/14) and the Stable gate defined in [`docs/release-policy.md`](release-policy.md).
+`v0.2.0` is feature-complete for its planned response-explorer release and is the current **Preview / release candidate**. The source manifest and package version are `0.2.0`; the release should remain non-stable until the exact packaged build is submitted through the Chrome Web Store and that distributed build passes the Stable gate in [`docs/release-policy.md`](release-policy.md).
+
+### v0.2.0 release focus
+
+- Collapsible JSON response tree.
+- Tree / Raw response modes.
+- Object, array, primitive, and null type presentation.
+- Selected-value inspection.
+- JavaScript path generation with array indexes and safe bracket notation for non-identifier keys.
+- One-click Copy Path.
+- Graceful fallback for non-JSON, image, empty, loading, and unavailable response bodies.
 
 ## Updating this file
 
