@@ -17,7 +17,7 @@ if (responseTab && responseToolbar && rawResponse) {
     </div>
 
     <div id="response-tree" class="response-explorer__tree" aria-live="polite">
-      <p id="response-tree-placeholder" class="response-explorer__placeholder">
+      <p class="response-explorer__placeholder">
         Load a JSON response to explore its structure and select a value.
       </p>
     </div>
@@ -62,10 +62,8 @@ if (responseTab && responseToolbar && rawResponse) {
   const copyPathButton = explorer.querySelector<HTMLButtonElement>("#copy-response-path")!;
 
   let currentSelection: ResponseExplorerSelection | null = null;
-  let activeView: "tree" | "raw" = "tree";
 
   function setView(view: "tree" | "raw"): void {
-    activeView = view;
     const showTree = view === "tree";
     tree.hidden = !showTree;
     rawResponse.hidden = showTree;
@@ -114,6 +112,25 @@ if (responseTab && responseToolbar && rawResponse) {
     if (parentIsArray) return `${parentPath}[${key}]`;
     if (/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(String(key))) return `${parentPath}.${key}`;
     return `${parentPath}[${JSON.stringify(String(key))}]`;
+  }
+
+  function clearSelection(): void {
+    currentSelection = null;
+    selectionPanel.hidden = true;
+    copyPathButton.disabled = true;
+    selectedType.textContent = "—";
+    selectedValue.textContent = "—";
+    selectedPath.textContent = "—";
+  }
+
+  function showTreeMessage(message: string, statusMessage: string): void {
+    clearSelection();
+    tree.innerHTML = `<p class="response-explorer__placeholder"></p>`;
+    const placeholder = tree.querySelector<HTMLElement>(".response-explorer__placeholder");
+    if (placeholder) placeholder.textContent = message;
+    treeButton.disabled = false;
+    status.textContent = statusMessage;
+    setView("tree");
   }
 
   function selectValue(path: string, value: unknown): void {
@@ -191,27 +208,49 @@ if (responseTab && responseToolbar && rawResponse) {
 
   function renderResponse(): void {
     const body = rawResponse.textContent ?? "";
-    if (!body || body.includes('Select "Load Response"')) {
-      treeButton.disabled = false;
-      status.textContent = "Load a response to explore it";
+
+    if (body.includes('Select "Load Response"')) {
+      showTreeMessage(
+        "Load a JSON response to explore its structure and select a value.",
+        "Load a response to explore it"
+      );
+      return;
+    }
+
+    if (body === "Loading response body...") {
+      showTreeMessage("Loading response body…", "Loading response…");
+      return;
+    }
+
+    if (rawResponse.querySelector("img")) {
+      clearSelection();
+      treeButton.disabled = true;
+      status.textContent = "Image response";
+      setView("raw");
+      return;
+    }
+
+    if (!body || body === "(empty response body)" || body === "Response body is no longer available.") {
+      clearSelection();
+      treeButton.disabled = true;
+      status.textContent = body || "Empty response";
+      setView("raw");
       return;
     }
 
     try {
       const parsed = JSON.parse(body) as unknown;
+      clearSelection();
       tree.innerHTML = "";
       tree.append(createNode("data", parsed, "data", 0));
       treeButton.disabled = false;
       status.textContent = "JSON response · select any value for its JS path";
-      currentSelection = null;
-      selectionPanel.hidden = true;
-      setView(activeView);
+      setView("tree");
     } catch {
+      clearSelection();
       tree.innerHTML = `<p class="response-explorer__placeholder">This response is not valid JSON. Use Raw to inspect the response body.</p>`;
       treeButton.disabled = true;
       status.textContent = "Non-JSON response";
-      currentSelection = null;
-      selectionPanel.hidden = true;
       setView("raw");
     }
   }
