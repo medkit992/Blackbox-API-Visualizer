@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="./graph.css" />
     <link rel="stylesheet" href="./consent.css" />
     <link rel="stylesheet" href="./response-explorer.css" />
+    <link rel="stylesheet" href="./request-debugger.css" />
   </head>
 
   <body>
@@ -176,18 +177,96 @@
           </nav>
 
           <section id="tab-overview" class="details-content" data-tab-content="overview">
-            <div id="details-insights" class="insights-list"></div>
+            <section
+              id="request-diagnosis"
+              class="request-diagnosis request-diagnosis--idle"
+              aria-labelledby="request-diagnosis-title"
+              data-diagnosis-state="idle"
+            >
+              <header class="request-diagnosis__header">
+                <div>
+                  <p class="request-diagnosis__eyebrow">Debugger</p>
+                  <h2 id="request-diagnosis-title">Request Diagnosis</h2>
+                </div>
+                <div class="request-diagnosis__badges">
+                  <span id="diagnosis-severity" class="diagnosis-badge">Not analyzed</span>
+                  <span id="diagnosis-confidence" class="diagnosis-confidence" hidden></span>
+                </div>
+              </header>
 
-            <dl class="details-grid">
-              <div><dt>URL</dt><dd id="details-url"></dd></div>
-              <div><dt>Host</dt><dd id="details-host"></dd></div>
-              <div><dt>Type</dt><dd id="details-type"></dd></div>
-              <div><dt>Duration</dt><dd id="details-duration"></dd></div>
-              <div><dt>Response Size</dt><dd id="details-response-size"></dd></div>
-              <div><dt>Priority</dt><dd id="details-priority"></dd></div>
-              <div><dt>Initiator</dt><dd id="details-initiator"></dd></div>
-              <div><dt>Server IP</dt><dd id="details-server-ip"></dd></div>
-            </dl>
+              <div class="request-diagnosis__summary">
+                <h3 id="diagnosis-title">Ready for diagnostic analysis</h3>
+                <p id="diagnosis-summary">
+                  The 0.3.0 diagnostic analyzer will use this area to explain what happened,
+                  why it likely happened, and what to check next.
+                </p>
+              </div>
+
+              <div id="diagnosis-meta" class="diagnosis-meta" hidden>
+                <span>Category: <strong id="diagnosis-category"></strong></span>
+                <span>Confidence: <strong id="diagnosis-confidence-text"></strong></span>
+              </div>
+
+              <div class="diagnosis-columns">
+                <section class="diagnosis-section">
+                  <h3>Evidence</h3>
+                  <div id="diagnosis-evidence" class="diagnosis-list diagnosis-list--empty">
+                    <p>Signals and request facts will appear here.</p>
+                  </div>
+                </section>
+
+                <section class="diagnosis-section">
+                  <h3>Likely Causes</h3>
+                  <div id="diagnosis-causes" class="diagnosis-list diagnosis-list--empty">
+                    <p>Possible causes will appear here.</p>
+                  </div>
+                </section>
+
+                <section class="diagnosis-section">
+                  <h3>Things to Check</h3>
+                  <div id="diagnosis-suggestions" class="diagnosis-list diagnosis-list--empty">
+                    <p>Recommended debugging steps will appear here.</p>
+                  </div>
+                </section>
+              </div>
+
+              <footer class="request-diagnosis__footer">
+                <span id="diagnosis-status" class="diagnosis-status" aria-live="polite">
+                  Analyzer not connected yet
+                </span>
+                <button id="copy-debug-summary" type="button" disabled>Copy Debug Summary</button>
+              </footer>
+            </section>
+
+            <section class="overview-section" aria-labelledby="detected-signals-title">
+              <div class="overview-section__header">
+                <div>
+                  <p class="overview-section__eyebrow">Existing analyzer</p>
+                  <h2 id="detected-signals-title">Detected Signals</h2>
+                </div>
+              </div>
+              <div id="details-insights" class="insights-list"></div>
+            </section>
+
+            <section class="overview-section" aria-labelledby="request-metadata-title">
+              <div class="overview-section__header">
+                <div>
+                  <p class="overview-section__eyebrow">Request facts</p>
+                  <h2 id="request-metadata-title">Metadata</h2>
+                </div>
+              </div>
+
+              <dl class="details-grid">
+                <div><dt>URL</dt><dd id="details-url"></dd></div>
+                <div><dt>Host</dt><dd id="details-host"></dd></div>
+                <div><dt>Type</dt><dd id="details-type"></dd></div>
+                <div><dt>Duration</dt><dd id="details-duration"></dd></div>
+                <div><dt>Response Size</dt><dd id="details-response-size"></dd></div>
+                <div><dt>Priority</dt><dd id="details-priority"></dd></div>
+                <div><dt>Initiator</dt><dd id="details-initiator"></dd></div>
+                <div><dt>Server IP</dt><dd id="details-server-ip"></dd></div>
+              </dl>
+            </section>
           </section>
 
           <section id="tab-request" class="details-content" data-tab-content="request" hidden>
