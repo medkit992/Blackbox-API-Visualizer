@@ -273,3 +273,176 @@
     width: 100%;
   }
 }
+
+/* 0.3.0 viewport and scrolling improvements
+   Keep a useful request workspace on short laptop-sized DevTools panes and
+   let the outer panel scroll instead of crushing every section into nested scroll areas. */
+
+body {
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+.app {
+  height: auto;
+  min-height: 100vh;
+}
+
+.topbar,
+.toolbar,
+.summary-bar,
+.session-insights,
+.view-switch-bar {
+  flex-shrink: 0;
+}
+
+.workspace {
+  position: relative;
+  flex: 1 0 340px;
+  min-height: 340px;
+}
+
+.request-panel,
+.graph-panel,
+.details-panel {
+  height: 100%;
+}
+
+.request-table-wrapper,
+.details-content,
+.session-insights__body {
+  scrollbar-gutter: stable;
+}
+
+/* Let the diagnosis cards respond to the width of the actual details pane
+   rather than the full DevTools viewport. */
+.diagnosis-columns {
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+/* Keep session information compact without hiding it. Narrow panes scroll
+   horizontally instead of stacking all three columns into a very tall block. */
+@media (max-width: 760px) {
+  .session-insights__body {
+    grid-template-columns: minmax(240px, 1.25fr) minmax(190px, 1fr) minmax(190px, 1fr);
+    overflow-x: auto;
+  }
+
+  .toolbar {
+    flex-wrap: wrap;
+  }
+
+  .toolbar__filters {
+    flex: 1 1 100%;
+    order: 2;
+  }
+
+  .toolbar__search {
+    flex: 1 1 220px;
+  }
+
+  .toolbar__search input {
+    width: 100%;
+  }
+}
+
+/* The old responsive drawer used a hard-coded 115px top offset. Anchor it
+   to the workspace instead so changing header/insight heights cannot cover it. */
+@media (max-width: 850px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .details-panel {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    height: 100%;
+  }
+}
+
+/* Short DevTools panes get denser chrome, but content remains readable and
+   the workspace keeps enough height to be useful. */
+@media (max-height: 700px) {
+  .topbar {
+    min-height: 38px;
+    padding-inline: 10px;
+  }
+
+  .toolbar {
+    min-height: 36px;
+    padding: 4px 8px;
+  }
+
+  .summary-bar {
+    min-height: 24px;
+    padding-inline: 10px;
+  }
+
+  .session-insights__header {
+    padding: 6px 10px;
+  }
+
+  .session-insights__body {
+    gap: 8px;
+    padding: 0 10px 8px;
+  }
+
+  .session-issue {
+    padding: 6px 8px;
+  }
+
+  .view-switch-bar {
+    min-height: 32px;
+    padding: 4px 8px;
+  }
+
+  .workspace {
+    flex-basis: 300px;
+    min-height: 300px;
+  }
+
+  .details-header {
+    min-height: 52px;
+    padding: 8px 10px;
+  }
+
+  .details-content {
+    padding: 10px;
+  }
+
+  .request-diagnosis__header,
+  .overview-section__header {
+    padding: 10px 12px;
+  }
+
+  .request-diagnosis__summary {
+    padding: 12px;
+  }
+
+  .diagnosis-columns {
+    padding: 0 12px 12px;
+  }
+
+  .request-diagnosis__footer {
+    padding: 8px 12px;
+  }
+}
+
+@media (max-width: 520px) {
+  .diagnosis-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    align-items: flex-start;
+    gap: 8px;
+    padding-block: 7px;
+  }
+
+  .topbar__actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+}
