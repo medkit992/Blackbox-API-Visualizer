@@ -1,3 +1,5 @@
+import "./sponsor.js";
+
 import { analyzeRequest } from "../network/analyzer.js";
 import type { NormalizedRequest } from "../network/types.js";
 import {
