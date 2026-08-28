@@ -124,10 +124,10 @@ function normalizeBuiltFileName(fileName: string): {
   }
 
   const extension = extensionMatch[1];
-  let stem = fileName.slice(0, -extension.length);
+  const stem = fileName.slice(0, -extension.length);
 
   // webpack-style: main.82e7f31e.chunk.js
-  const chunkMatch = stem.match(/^(.*?)[.-]([A-Za-z0-9_-]{6,})\.chunk$/i);
+  const chunkMatch = stem.match(/^(.*)[.-]([A-Za-z0-9_]{6,})\.chunk$/i);
   if (chunkMatch && looksLikeBuildHash(chunkMatch[2])) {
     return {
       fileName: `${chunkMatch[1]}${extension}`,
@@ -135,13 +135,25 @@ function normalizeBuiltFileName(fileName: string): {
     };
   }
 
-  // Vite/webpack/common static builds:
-  // main.82e7f31e.js, index-BQTmb-9P.js, fetch-utilities-c744d246983ad6ac.js
-  const hashMatch = stem.match(/^(.*?)[.-]([A-Za-z0-9_-]{6,})$/);
-  if (hashMatch && looksLikeBuildHash(hashMatch[2])) {
-    stem = hashMatch[1];
+  // Prefer the final compact token as the hash. This keeps readable names such
+  // as `fetch-utilities-c744d246983ad6ac.js` intact instead of incorrectly
+  // treating `utilities-c744...` as one giant hash.
+  const finalTokenMatch = stem.match(/^(.*)[.-]([A-Za-z0-9_]{6,})$/);
+  if (finalTokenMatch && looksLikeBuildHash(finalTokenMatch[2])) {
     return {
-      fileName: `${stem}${extension}`,
+      fileName: `${finalTokenMatch[1]}${extension}`,
+      changed: true,
+    };
+  }
+
+  // Vite/Rollup hashes can themselves contain a hyphen, for example
+  // `index-BQTmb-9P.js`. Handle that form only after the safer final-token pass.
+  const compoundHashMatch = stem.match(
+    /^(.*?)-([A-Za-z0-9_]{4,}-[A-Za-z0-9_-]{2,})$/
+  );
+  if (compoundHashMatch && looksLikeBuildHash(compoundHashMatch[2])) {
+    return {
+      fileName: `${compoundHashMatch[1]}${extension}`,
       changed: true,
     };
   }
