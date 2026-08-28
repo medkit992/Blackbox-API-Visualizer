@@ -1,5 +1,4 @@
 import type { RequestDiagnosis } from "./diagnosticRules.js";
-import { formatInitiatorSource } from "./initiatorSource.js";
 import type { RequestSourceContext } from "./requestSourceContext.js";
 
 export function withSourceContext(
@@ -17,7 +16,7 @@ export function withSourceContext(
       key: "debug-source",
       label: context.authoredSource ? "Start debugging in" : "Likely source",
       value: context.primarySource,
-      strength: context.authoredSource ? "strong" : undefined,
+      ...(context.authoredSource ? { strength: "strong" as const } : {}),
     });
   }
 
@@ -30,23 +29,14 @@ export function withSourceContext(
     });
   }
 
-  const browserInitiator = context.browserInitiator
-    ? formatInitiatorSource({
-        type: "other",
-        url: context.browserInitiator.url,
-        lineNumber:
-          context.browserInitiator.lineNumber !== undefined
-            ? context.browserInitiator.lineNumber - 1
-            : undefined,
-        stack: undefined,
-      }) ?? context.browserInitiator.label
-    : null;
-
-  if (browserInitiator && browserInitiator !== context.primarySource) {
+  if (
+    context.browserInitiator?.label &&
+    context.browserInitiator.label !== context.primarySource
+  ) {
     evidence.push({
       key: "browser-initiator",
       label: "Browser initiator",
-      value: context.browserInitiator?.label ?? browserInitiator,
+      value: context.browserInitiator.label,
     });
   }
 
