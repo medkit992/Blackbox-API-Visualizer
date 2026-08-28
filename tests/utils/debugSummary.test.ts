@@ -27,14 +27,14 @@ describe("formatDebugSummary", () => {
 
     expect(summary).toContain("Blackbox Debug Summary");
     expect(summary).toContain("No issues detected");
-    expect(summary).toContain("Initiated by:");
+    expect(summary).toContain("Browser initiator:");
     expect(summary).toContain("body omitted from copied summary");
     expect(summary).not.toContain("super-secret");
     expect(summary).not.toContain("initiator-secret");
     expect(summary).not.toContain("do-not-copy");
   });
 
-  it("keeps the friendly initiator and exact generated location for hashed builds", () => {
+  it("keeps the friendly browser initiator and exact generated location for hashed builds", () => {
     const request = makeRequest({
       initiator: {
         type: "script",
@@ -59,13 +59,13 @@ describe("formatDebugSummary", () => {
       },
     });
 
-    expect(summary).toContain("Initiated by: main.js:2:183667");
+    expect(summary).toContain("Browser initiator: main.js:2:183667");
     expect(summary).toContain(
-      "Generated location: js/main.82e7f31e.js:2:183667"
+      "Generated browser location: js/main.82e7f31e.js:2:183667"
     );
   });
 
-  it("formats a future structured diagnosis without changing the clipboard path", () => {
+  it("formats a structured diagnosis without changing the clipboard path", () => {
     const request = makeRequest({ status: 404, statusText: "Not Found", outcome: "client-error" });
     const diagnosis: RequestDiagnosis = {
       ruleId: "http-404",
