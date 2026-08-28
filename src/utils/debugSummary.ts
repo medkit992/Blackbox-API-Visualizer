@@ -1,4 +1,4 @@
-import { formatInitiatorSource } from "../network/initiatorSource.js";
+import { getBestInitiatorSource } from "../network/initiatorSource.js";
 import type { RequestDiagnosis } from "../network/diagnosticRules.js";
 import type { RequestAnalysis, NormalizedRequest } from "../network/types.js";
 
@@ -92,9 +92,13 @@ export function formatDebugSummary({
     `Response size: ${formatBytes(request.responseSize)}`,
   ];
 
-  const initiator = formatInitiatorSource(request.initiator);
+  const initiator = getBestInitiatorSource(request.initiator);
   if (initiator) {
-    lines.push(`Initiated by: ${redactSecrets(initiator)}`);
+    lines.push(`Initiated by: ${redactSecrets(initiator.label)}`);
+
+    if (initiator.likelyBuiltAsset && initiator.generatedLabel) {
+      lines.push(`Generated location: ${redactSecrets(initiator.generatedLabel)}`);
+    }
   }
 
   lines.push(
