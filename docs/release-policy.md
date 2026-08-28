@@ -123,6 +123,7 @@ At minimum:
 3. Confirm the Chrome Web Store Privacy practices data-type disclosures still cover the data handled.
 4. Confirm Limited Use statements remain accurate and all data handling is necessary for Blackbox's disclosed developer-tool purpose.
 5. Avoid adding broader permissions/host access when a narrower DevTools/same-origin mechanism can implement the feature.
+6. Version stored consent when a release materially expands the sensitive data Blackbox reads, so consent granted under an older disclosure is not silently reused.
 
 ## Release record format
 
@@ -138,7 +139,7 @@ Health: Working | Known issues | Broken
 ## Current early-release interpretation
 
 - **v0.1.0** — reached the Chrome Web Store, but the distributed build is known to be broken. Treat it as **Retired / Production history / Broken**.
-- **v0.1.1** — superseded by the capture-reliability patch and no longer recommended.
-- **v0.1.2** — verified working through the Chrome Web Store and remains the current **Stable / Production / Working** release until a later version passes the Stable gate.
-- **v0.2.0** — Response Explorer candidate superseded before production verification; its functionality is carried forward into v0.3.0.
+- **v0.1.1** — superseded by later reliability releases and no longer recommended.
+- **v0.1.2** — previously verified through the Chrome Web Store; now superseded by v0.2.0.
+- **v0.2.0** — verified working through the Chrome Web Store and is the current **Stable / Production / Working** release until a later version passes the Stable gate.
 - **v0.3.0** — Request Debugger / Source Context release candidate. Treat it as **Preview / Local-Test / Working** until the exact packaged Chrome Web Store build passes the Stable release gate; then promote the same version to **Stable / Production / Working**.
