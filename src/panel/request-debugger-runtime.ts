@@ -4,21 +4,33 @@ import { analyzeRequest } from "../network/analyzer.js";
 import { diagnoseRequest } from "../network/diagnosticAnalyzer.js";
 import type { RequestDiagnosis } from "../network/diagnosticRules.js";
 import { getBestInitiatorSource } from "../network/initiatorSource.js";
+import {
+  buildRequestSourceContext,
+  type RequestSourceContext,
+} from "../network/requestSourceContext.js";
+import { withSourceContext } from "../network/sourceContextDiagnosis.js";
 import type { NormalizedRequest, RequestAnalysis } from "../network/types.js";
 import {
   copyDebugSummary,
   formatDebugSummary,
 } from "../utils/debugSummary.js";
 import {
+  getSourceResources,
+  resetSourceResources,
+} from "./devtoolsResources.js";
+import {
   renderRequestDiagnosis,
   resetRequestDiagnosis,
 } from "./request-debugger-view.js";
 
 const requestsById = new Map<string, NormalizedRequest>();
+const requestTimeline: NormalizedRequest[] = [];
 const responseLoads = new Map<string, Promise<void>>();
 
 const requestList = document.getElementById("request-list");
 const rawResponse = document.getElementById("details-response-body");
+const detailsSource = document.getElementById("details-source");
+const detailsRelationship = document.getElementById("details-relationship");
 const detailsInitiator = document.getElementById("details-initiator");
 const diagnosisStatus = document.getElementById("diagnosis-status");
 const copySummaryButton = document.getElementById(
@@ -29,6 +41,8 @@ const closeDetailsButton = document.getElementById("close-details");
 let selectedRequest: NormalizedRequest | null = null;
 let selectedAnalysis: RequestAnalysis | null = null;
 let selectedDiagnosis: RequestDiagnosis | null = null;
+let selectedSourceContext: RequestSourceContext | null = null;
+let sourceResolutionVersion = 0;
 
 function renderResponseBody(request: NormalizedRequest): void {
   if (!rawResponse || selectedRequest?.id !== request.id) {
@@ -53,28 +67,27 @@ function renderResponseBody(request: NormalizedRequest): void {
   rawResponse.textContent = content || "(empty response body)";
 }
 
-function renderInitiatorSource(request: NormalizedRequest): void {
-  if (!detailsInitiator) {
-    return;
+function renderSourceMetadata(
+  request: NormalizedRequest,
+  context: RequestSourceContext | null
+): void {
+  const immediate = getBestInitiatorSource(request.initiator);
+  const browserInitiator = context?.browserInitiator?.label ?? immediate?.label ?? "N/A";
+  const source = context?.primarySource ?? browserInitiator;
+
+  if (detailsSource) {
+    detailsSource.textContent = source;
+    detailsSource.title = context?.authoredSource?.url ?? immediate?.url ?? "";
   }
 
-  const source = getBestInitiatorSource(request.initiator);
-  detailsInitiator.textContent = source?.label ?? "N/A";
-
-  if (!source) {
-    detailsInitiator.title = "";
-    return;
+  if (detailsRelationship) {
+    detailsRelationship.textContent = context?.relationship ?? "Direct request / no upstream match";
   }
 
-  const titleParts: string[] = [];
-  if (source.generatedLabel) {
-    titleParts.push(`Captured location: ${source.generatedLabel}`);
+  if (detailsInitiator) {
+    detailsInitiator.textContent = browserInitiator;
+    detailsInitiator.title = context?.browserInitiator?.url ?? immediate?.url ?? "";
   }
-  if (source.url) {
-    titleParts.push(source.url);
-  }
-
-  detailsInitiator.title = titleParts.join("\n");
 }
 
 function analyzeSelectedRequest(): void {
@@ -86,8 +99,17 @@ function analyzeSelectedRequest(): void {
   }
 
   selectedAnalysis = analyzeRequest(selectedRequest);
-  selectedDiagnosis = diagnoseRequest(selectedRequest, selectedAnalysis);
+  selectedDiagnosis = withSourceContext(
+    diagnoseRequest(selectedRequest, selectedAnalysis),
+    selectedSourceContext
+  );
   renderRequestDiagnosis(selectedRequest, selectedDiagnosis);
+
+  if (selectedSourceContext && diagnosisStatus) {
+    diagnosisStatus.textContent = selectedRequest.responseBodyLoaded
+      ? "Analyzed with response and source context"
+      : "Analyzed with source context · loading response context";
+  }
 }
 
 function loadResponseBody(request: NormalizedRequest): Promise<void> {
@@ -147,32 +169,79 @@ function loadResponseBody(request: NormalizedRequest): Promise<void> {
   return load;
 }
 
+async function resolveSelectedSourceContext(request: NormalizedRequest): Promise<void> {
+  const version = ++sourceResolutionVersion;
+
+  if (diagnosisStatus && selectedRequest?.id === request.id) {
+    diagnosisStatus.textContent = "Analyzing request · resolving source context";
+  }
+
+  try {
+    const resources = await getSourceResources();
+    const context = await buildRequestSourceContext({
+      request,
+      timeline: requestTimeline,
+      resources,
+      loadResponseBody,
+    });
+
+    if (
+      version !== sourceResolutionVersion ||
+      selectedRequest?.id !== request.id
+    ) {
+      return;
+    }
+
+    selectedSourceContext = context;
+    renderSourceMetadata(request, context);
+    analyzeSelectedRequest();
+  } catch (error) {
+    console.error("Blackbox failed to resolve request source context.", error);
+
+    if (version === sourceResolutionVersion && selectedRequest?.id === request.id) {
+      if (diagnosisStatus) {
+        diagnosisStatus.textContent = request.responseBodyLoaded
+          ? "Analyzed with response context · source mapping unavailable"
+          : "Analyzed from request metadata · source mapping unavailable";
+      }
+    }
+  }
+}
+
 function selectRequest(request: NormalizedRequest): void {
   selectedRequest = request;
+  selectedSourceContext = null;
 
   if (copySummaryButton) {
     copySummaryButton.disabled = false;
   }
 
-  renderInitiatorSource(request);
+  renderSourceMetadata(request, null);
   analyzeSelectedRequest();
   void loadResponseBody(request);
+  void resolveSelectedSourceContext(request);
 }
 
 function clearRuntimeState(): void {
+  sourceResolutionVersion += 1;
   requestsById.clear();
+  requestTimeline.length = 0;
   responseLoads.clear();
+  resetSourceResources();
   selectedRequest = null;
   selectedAnalysis = null;
   selectedDiagnosis = null;
+  selectedSourceContext = null;
 
   if (copySummaryButton) {
     copySummaryButton.disabled = true;
   }
 
-  if (detailsInitiator) {
-    detailsInitiator.textContent = "N/A";
-    detailsInitiator.title = "";
+  for (const element of [detailsSource, detailsRelationship, detailsInitiator]) {
+    if (element) {
+      element.textContent = "N/A";
+      element.title = "";
+    }
   }
 
   resetRequestDiagnosis();
@@ -180,7 +249,10 @@ function clearRuntimeState(): void {
 
 document.addEventListener("normalizedRequestsUpdated", (event) => {
   const detail = (event as CustomEvent<NormalizedRequest[]>).detail ?? [];
-  detail.forEach((request) => requestsById.set(request.id, request));
+  detail.forEach((request) => {
+    requestsById.set(request.id, request);
+    requestTimeline.push(request);
+  });
 });
 
 document.addEventListener("responseBodyLoaded", (event) => {
@@ -214,9 +286,11 @@ requestList?.addEventListener("click", (event) => {
 });
 
 closeDetailsButton?.addEventListener("click", () => {
+  sourceResolutionVersion += 1;
   selectedRequest = null;
   selectedAnalysis = null;
   selectedDiagnosis = null;
+  selectedSourceContext = null;
 
   if (copySummaryButton) {
     copySummaryButton.disabled = true;
@@ -231,7 +305,12 @@ copySummaryButton?.addEventListener("click", async () => {
   }
 
   const analysis = selectedAnalysis ?? analyzeRequest(selectedRequest);
-  const diagnosis = selectedDiagnosis ?? diagnoseRequest(selectedRequest, analysis);
+  const diagnosis =
+    selectedDiagnosis ??
+    withSourceContext(
+      diagnoseRequest(selectedRequest, analysis),
+      selectedSourceContext
+    );
   const originalLabel = copySummaryButton.textContent ?? "Copy Debug Summary";
 
   try {
