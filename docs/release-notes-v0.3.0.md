@@ -40,6 +40,7 @@ The v0.2.0 Response Explorer is included in v0.3.0:
 
 v0.3.0 expands the local context Blackbox can inspect, so its consent/privacy disclosures were updated accordingly.
 
+- **Existing users who previously granted network-capture consent are asked once to accept the updated v0.3.0 disclosure before recording resumes.**
 - Selected response bodies are retrieved automatically from the request already captured by DevTools.
 - Derived-resource tracing may inspect a bounded set of recent successful Fetch/XHR response bodies for exact URL relationships.
 - Source correlation may inspect source resources/source maps exposed by DevTools.
