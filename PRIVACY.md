@@ -53,7 +53,9 @@ When you select certain derived resources such as images, media, scripts, styles
 
 When DevTools exposes generated scripts, authored source resources, or source maps, Blackbox may read them locally to map generated JavaScript locations back to the original JavaScript, JSX, TypeScript, TSX, Vue, Svelte, Astro, or other supported source files. Blackbox only reports an authored extension or filename when that information is present in actual source/source-map evidence; it does not rename generated `.js` files to `.ts`, `.tsx`, or another source language based on a framework guess.
 
-Blackbox does not remotely fetch source maps or source files from a Blackbox service. Source correlation is limited to content exposed by the inspected page, captured network resources, and DevTools resources available in the local browser session.
+For generated same-origin JavaScript files, Blackbox may also try the conventional sibling source-map location (for example, `main.js.map`) when that map was not already exposed by DevTools. That request is made to the inspected site's own origin from the inspected page context, is limited to source-map text, and is not sent through a Blackbox service. Cross-origin source-map files are not fetched by this fallback.
+
+Blackbox does not use a Blackbox-operated service to retrieve source maps or source files. Source correlation is limited to content exposed by the inspected page, captured network resources, DevTools resources available in the local browser session, and the same-origin source-map fallback described above.
 
 ## Data Transmission and Sharing
 
@@ -61,7 +63,7 @@ Blackbox does not transmit captured network traffic or inspected source content 
 
 Blackbox does not sell captured network data and does not share captured network data or source content with advertisers, data brokers, or unrelated third parties.
 
-The extension analyzes the information locally in the DevTools extension context on your device.
+The extension analyzes the information locally in the DevTools extension context on your device. A same-origin source-map fallback request, when used, goes only to the website already being inspected.
 
 ## Storage and Retention
 
@@ -73,7 +75,7 @@ In the current version:
 - navigating the inspected page resets the current captured session and source-context cache;
 - closing the DevTools panel ends the in-memory session;
 - response bodies are retrieved automatically when you select a captured request and are kept only in the active in-memory session; and
-- additional recent Fetch/XHR bodies or source resources inspected for provenance/source correlation are cached only in memory for the active DevTools session.
+- additional recent Fetch/XHR bodies, source resources, or same-origin source maps inspected for provenance/source correlation are cached only in memory for the active DevTools session.
 
 Blackbox stores a small local preference indicating whether you granted network-capture consent. This preference contains no captured network traffic or source content. You can remove it by choosing **Privacy → Revoke access**, by clearing the extension's local data, or by uninstalling the extension.
 
@@ -88,6 +90,7 @@ Blackbox provides the following controls:
 - **Privacy → Revoke access** — disables future capture and clears the current Blackbox session.
 - Selecting a captured request retrieves its response body automatically so the response view and local debugger can use it as context.
 - Selecting a derived resource may trigger bounded local provenance/source analysis as described above.
+- Source analysis may request a conventional same-origin `.map` file for a generated script when DevTools did not already expose it.
 
 ## Security
 
