@@ -25,12 +25,12 @@ describe("getBestInitiatorSource", () => {
 
     expect(source).toMatchObject({
       source: "direct",
-      label: "api/users.ts:42",
+      label: "users.ts:42",
       lineNumber: 42,
     });
   });
 
-  it("uses the first useful JavaScript stack frame when the direct URL is missing", () => {
+  it("puts the readable file before the function name", () => {
     const source = getBestInitiatorSource({
       type: "script",
       stack: {
@@ -47,7 +47,7 @@ describe("getBestInitiatorSource", () => {
 
     expect(source).toMatchObject({
       source: "stack",
-      label: "fetchUsers() · assets/app.js:142:18",
+      label: "app.js:142:18 · fetchUsers()",
       functionName: "fetchUsers",
       lineNumber: 142,
       columnNumber: 18,
@@ -72,7 +72,71 @@ describe("getBestInitiatorSource", () => {
       },
     });
 
-    expect(source?.label).toBe("loadDashboard() · dashboard/api.ts:8:4");
+    expect(source?.label).toBe("api.ts:8:4 · loadDashboard()");
+  });
+
+  it("normalizes a hashed student build filename and drops a useless minified function", () => {
+    const source = getBestInitiatorSource({
+      type: "script",
+      stack: {
+        callFrames: [
+          {
+            functionName: "x0",
+            url: "https://student.example.com/js/main.82e7f31e.js",
+            lineNumber: 1,
+            columnNumber: 19039,
+          },
+        ],
+      },
+    });
+
+    expect(source).toMatchObject({
+      label: "main.js:2:19040",
+      generatedLabel: "js/main.82e7f31e.js:2:19040",
+      likelyBuiltAsset: true,
+    });
+  });
+
+  it("reduces a minified function chain to the readable function and normalizes the build hash", () => {
+    const source = getBestInitiatorSource({
+      type: "script",
+      stack: {
+        callFrames: [
+          {
+            functionName: "o.cg.o.cg.fetch",
+            url: "https://github.githubassets.com/assets/fetch-utilities-c744d246983ad6ac.js",
+            lineNumber: 2,
+            columnNumber: 5269,
+          },
+        ],
+      },
+    });
+
+    expect(source).toMatchObject({
+      label: "fetch-utilities.js:3:5270 · fetch()",
+      functionName: "fetch",
+      generatedLabel: "assets/fetch-utilities-c744d246983ad6ac.js:3:5270",
+      likelyBuiltAsset: true,
+    });
+  });
+
+  it("does not invent a TypeScript source file from generated JavaScript", () => {
+    const source = getBestInitiatorSource({
+      type: "script",
+      stack: {
+        callFrames: [
+          {
+            functionName: "loadData",
+            url: "https://example.com/assets/main.A1b2C3d4.js",
+            lineNumber: 4,
+            columnNumber: 10,
+          },
+        ],
+      },
+    });
+
+    expect(source?.label).toBe("main.js:5:11 · loadData()");
+    expect(source?.label).not.toContain(".ts");
   });
 
   it("keeps the initiator type as the final fallback", () => {
