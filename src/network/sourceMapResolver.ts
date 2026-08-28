@@ -149,7 +149,9 @@ function displaySourcePath(rawSource: string): string {
 }
 
 function resolveSourceUrl(source: string, mapUrl: string, sourceRoot = ""): string {
-  const combined = sourceRoot ? `${sourceRoot.replace(/\/$/, "")}/${source.replace(/^\//, "")}` : source;
+  const combined = sourceRoot
+    ? `${sourceRoot.replace(/\/$/, "")}/${source.replace(/^\//, "")}`
+    : source;
 
   if (/^(?:webpack|vite|ng|parcel):\/\//i.test(combined)) {
     return combined;
@@ -198,11 +200,19 @@ function decodeDataSourceMap(reference: string): string | null {
 }
 
 function sourceMapReference(scriptContent: string): string | null {
-  const matches = [
-    ...scriptContent.matchAll(/(?:\/\/[#@]|\/\*[#@])\s*sourceMappingURL\s*=\s*([^\s*]+)(?:\s*\*\/)?/g),
-  ];
+  // Only accept standalone source-map directives. Webpack eval-source-map embeds
+  // many sourceMappingURL strings inside JavaScript string literals; treating the
+  // last one as the map for the entire bundle would map requests to random modules.
+  const lineMatches = [
+    ...scriptContent.matchAll(
+      /^\s*\/\/[#@]\s*sourceMappingURL\s*=\s*(\S+)\s*$/gm
+    ),
+    ...scriptContent.matchAll(
+      /^\s*\/\*[#@]\s*sourceMappingURL\s*=\s*([^\s*]+)\s*\*\/\s*$/gm
+    ),
+  ].sort((left, right) => (left.index ?? 0) - (right.index ?? 0));
 
-  return matches.at(-1)?.[1]?.trim() ?? null;
+  return lineMatches.at(-1)?.[1]?.trim() ?? null;
 }
 
 async function getResourceContent(
@@ -246,6 +256,8 @@ async function loadSourceMap(
     }
   }
 
+  // A .map sibling is a safe fallback only when DevTools/network resources
+  // actually expose it; Blackbox does not invent or remotely fetch map files.
   const cleanGeneratedUrl = stripUrlDecorations(generatedUrl);
   candidates.push(`${cleanGeneratedUrl}.map`);
 
@@ -261,6 +273,10 @@ async function loadSourceMap(
 }
 
 function generatedLocation(source: InitiatorSource): string | undefined {
+  if (source.generatedLabel) {
+    return source.generatedLabel;
+  }
+
   if (!source.url) {
     return undefined;
   }
@@ -270,7 +286,9 @@ function generatedLocation(source: InitiatorSource): string | undefined {
     return file;
   }
 
-  return `${file}:${source.lineNumber}${source.columnNumber !== undefined ? `:${source.columnNumber}` : ""}`;
+  return `${file}:${source.lineNumber}${
+    source.columnNumber !== undefined ? `:${source.columnNumber}` : ""
+  }`;
 }
 
 function mapPosition(
@@ -322,11 +340,16 @@ function mapPosition(
     ...(functionName ? { functionName } : {}),
     method: "source-map",
     confidence: "high",
-    generatedLocation: generatedLocation(source),
+    ...(generatedLocation(source)
+      ? { generatedLocation: generatedLocation(source) }
+      : {}),
   };
 }
 
-function lineAndColumn(content: string, index: number): { lineNumber: number; columnNumber: number } {
+function lineAndColumn(
+  content: string,
+  index: number
+): { lineNumber: number; columnNumber: number } {
   const before = content.slice(0, index);
   const lines = before.split("\n");
   return {
@@ -368,7 +391,9 @@ function inferFunctionName(content: string, index: number): string | undefined {
   return candidates[0]?.name;
 }
 
-function requestNeedles(request: NormalizedRequest): Array<{ value: string; score: number }> {
+function requestNeedles(
+  request: NormalizedRequest
+): Array<{ value: string; score: number }> {
   const needles: Array<{ value: string; score: number }> = [];
 
   try {
@@ -385,9 +410,16 @@ function requestNeedles(request: NormalizedRequest): Array<{ value: string; scor
     }
   }
 
-  return [...new Map(needles.map((needle) => [needle.value, needle])).values()]
-    .filter((needle) => needle.value.length >= 4)
-    .sort((a, b) => b.score - a.score);
+  const unique = new Map<string, { value: string; score: number }>();
+  for (const needle of needles) {
+    if (needle.value.length < 4) continue;
+    const existing = unique.get(needle.value);
+    if (!existing || needle.score > existing.score) {
+      unique.set(needle.value, needle);
+    }
+  }
+
+  return [...unique.values()].sort((left, right) => right.score - left.score);
 }
 
 function sourceCandidateScore(source: string): number {
@@ -430,8 +462,13 @@ function findRequestInSourceMap(
       const index = content.indexOf(needle.value);
       if (index < 0) continue;
 
-      const nearby = content.slice(Math.max(0, index - 180), index + needle.value.length + 80);
-      const callBonus = /(?:fetch|axios|XMLHttpRequest|\$http|request)\s*(?:\.|\()/i.test(nearby)
+      const nearby = content.slice(
+        Math.max(0, index - 180),
+        index + needle.value.length + 80
+      );
+      const callBonus = /(?:fetch|axios|XMLHttpRequest|\$http|request)\s*(?:\.|\()/i.test(
+        nearby
+      )
         ? 25
         : 0;
       const score = needle.score + sourceCandidateScore(rawSource) + callBonus;
@@ -450,6 +487,7 @@ function findRequestInSourceMap(
   const url = resolveSourceUrl(rawSource, mapUrl, map.sourceRoot);
   const location = lineAndColumn(best.content, best.index);
   const functionName = inferFunctionName(best.content, best.index);
+  const generated = generatedLocation(source);
 
   return {
     file: displaySourcePath(rawSource),
@@ -458,7 +496,7 @@ function findRequestInSourceMap(
     ...(functionName ? { functionName } : {}),
     method: "source-content",
     confidence: best.score >= 130 ? "high" : "medium",
-    generatedLocation: generatedLocation(source),
+    ...(generated ? { generatedLocation: generated } : {}),
   };
 }
 
@@ -470,7 +508,10 @@ async function findRequestInAuthoredResources(
   const candidates = resources
     .filter((resource) => SOURCE_EXTENSIONS.test(stripUrlDecorations(resource.url)))
     .filter((resource) => !IGNORED_SOURCE_HINT.test(resource.url))
-    .filter((resource) => !GENERATED_PATH_HINT.test(resource.url) && !HASH_SEGMENT.test(resource.url))
+    .filter(
+      (resource) =>
+        !GENERATED_PATH_HINT.test(resource.url) && !HASH_SEGMENT.test(resource.url)
+    )
     .slice(0, 60);
 
   const needles = requestNeedles(request);
@@ -491,8 +532,13 @@ async function findRequestInAuthoredResources(
       const index = content.indexOf(needle.value);
       if (index < 0) continue;
 
-      const nearby = content.slice(Math.max(0, index - 180), index + needle.value.length + 80);
-      const callBonus = /(?:fetch|axios|XMLHttpRequest|\$http|request)\s*(?:\.|\()/i.test(nearby)
+      const nearby = content.slice(
+        Math.max(0, index - 180),
+        index + needle.value.length + 80
+      );
+      const callBonus = /(?:fetch|axios|XMLHttpRequest|\$http|request)\s*(?:\.|\()/i.test(
+        nearby
+      )
         ? 25
         : 0;
       const score = needle.score + sourceCandidateScore(resource.url) + callBonus;
@@ -509,6 +555,7 @@ async function findRequestInAuthoredResources(
 
   const location = lineAndColumn(best.content, best.index);
   const functionName = inferFunctionName(best.content, best.index);
+  const generated = generatedLocation(source);
 
   return {
     file: displaySourcePath(best.resource.url),
@@ -517,7 +564,7 @@ async function findRequestInAuthoredResources(
     ...(functionName ? { functionName } : {}),
     method: "source-content",
     confidence: best.score >= 130 ? "high" : "medium",
-    generatedLocation: generatedLocation(source),
+    ...(generated ? { generatedLocation: generated } : {}),
   };
 }
 
@@ -539,6 +586,8 @@ export async function resolveAuthoredSource(
     );
 
     if (loadedMap) {
+      // An exact endpoint in sourcesContent is stronger evidence than a generated
+      // call frame because it identifies the authored request code itself.
       const contentMatch = findRequestInSourceMap(
         loadedMap.map,
         loadedMap.mapUrl,
@@ -560,6 +609,9 @@ export async function resolveAuthoredSource(
     }
   }
 
+  // DevTools may expose authored webpack/vite/etc. resources directly even when
+  // the map file itself is not visible to the extension. Search those resources
+  // for the exact endpoint rather than guessing an original extension or file.
   return findRequestInAuthoredResources(request, resources, generatedSource);
 }
 
