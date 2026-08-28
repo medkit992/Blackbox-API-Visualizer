@@ -2,6 +2,6 @@
   "manifest_version": 3,
   "name": "Blackbox API Visualizer",
   "version": "0.3.0",
-  "description": "Visualize and inspect API traffic directly inside Chrome DevTools.",
+  "description": "Visualize, diagnose, and trace API traffic directly inside Chrome DevTools.",
   "devtools_page": "src/devtools/devtools.html"
 }
