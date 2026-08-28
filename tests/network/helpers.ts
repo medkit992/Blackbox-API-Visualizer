@@ -82,6 +82,9 @@ export function makeRequest(
 
     responseHeaders: [],
     redirectUrl: undefined,
+    responseBody: undefined,
+    responseBodyEncoding: undefined,
+    responseBodyLoaded: false,
 
     timings: {
       blocked: 1,
