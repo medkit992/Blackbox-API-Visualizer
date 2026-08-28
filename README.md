@@ -11,8 +11,8 @@ Instead of treating every request as an isolated row, Blackbox combines determin
 | Status | Version | Channel | Health |
 | --- | --- | --- | --- |
 | **Release candidate** | `v0.3.0` | Local / trusted testing; Chrome Web Store submission next | Working in automated and manual testing |
-| **Latest Stable** | `v0.1.2` | Chrome Web Store | Working |
-| **Superseded candidate** | `v0.2.0` | Local / GitHub history | Response Explorer work carried forward into v0.3.0 |
+| **Latest Stable** | `v0.2.0` | Chrome Web Store | Working / verified |
+| **Superseded Stable** | `v0.1.2` | Chrome Web Store history | Working, superseded by v0.2.0 |
 | **Retired** | `v0.1.0` | Chrome Web Store history | **Broken — do not recommend** |
 
 `v0.3.0` should remain **Preview / release candidate** until the exact packaged build is submitted to the Chrome Web Store and the distributed build passes the [Stable release gate](docs/release-policy.md). See the [current release status](docs/release-status.md) and [v0.3.0 verification issue](https://github.com/medkit992/Blackbox-API-Visualizer/issues/18) for the source-of-truth release state.
