@@ -34,7 +34,7 @@ function redactSecrets(value: string): string {
     .replace(JWT_PATTERN, "[REDACTED_JWT]")
     .replace(
       /([?&]|\b)([^\s=&:]+)(=|:\s*)([^\s&#,;]+)/gi,
-      (match, prefix: string, key: string, separator: string, secretValue: string) => {
+      (match, prefix: string, key: string, separator: string) => {
         if (!SENSITIVE_KEY_PATTERN.test(key)) {
           return match;
         }
@@ -49,11 +49,16 @@ function sanitizeUrl(rawUrl: string): string {
     if (url.username) url.username = "[REDACTED]";
     if (url.password) url.password = "[REDACTED]";
 
-    for (const key of Array.from(url.searchParams.keys())) {
+    const sensitiveQueryKeys: string[] = [];
+    url.searchParams.forEach((_value, key) => {
       if (SENSITIVE_KEY_PATTERN.test(key)) {
-        url.searchParams.set(key, "[REDACTED]");
+        sensitiveQueryKeys.push(key);
       }
-    }
+    });
+
+    sensitiveQueryKeys.forEach((key) => {
+      url.searchParams.set(key, "[REDACTED]");
+    });
 
     return redactSecrets(url.toString());
   } catch {
