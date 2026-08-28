@@ -94,10 +94,10 @@ export function formatDebugSummary({
 
   const initiator = getBestInitiatorSource(request.initiator);
   if (initiator) {
-    lines.push(`Initiated by: ${redactSecrets(initiator.label)}`);
+    lines.push(`Browser initiator: ${redactSecrets(initiator.label)}`);
 
     if (initiator.likelyBuiltAsset && initiator.generatedLabel) {
-      lines.push(`Generated location: ${redactSecrets(initiator.generatedLabel)}`);
+      lines.push(`Generated browser location: ${redactSecrets(initiator.generatedLabel)}`);
     }
   }
 
