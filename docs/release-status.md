@@ -5,14 +5,14 @@ This file is the human-readable source of truth for which Blackbox builds are re
 | Version | Stage | Channel | Health | Recommendation |
 | --- | --- | --- | --- | --- |
 | `v0.3.0` | Preview / release candidate | Local / trusted testing; Chrome Web Store submission next | Working in automated/manual testing | Test/package now; mark Stable only after Chrome Web Store verification |
-| `v0.1.2` | Stable | Production (Chrome Web Store) | Working | Current recommended production release until v0.3.0 passes production verification |
-| `v0.2.0` | Superseded candidate | Local / GitHub history | Response Explorer work carried forward into v0.3.0 | Do not ship separately; verify through v0.3.0 |
-| `v0.1.1` | Retired / superseded | Production history | Superseded by v0.1.2 | Do not recommend over v0.1.2 |
+| `v0.2.0` | Stable | Production (Chrome Web Store) | Working / verified | Current recommended production release until v0.3.0 passes production verification |
+| `v0.1.2` | Retired / superseded Stable | Production history | Working, superseded by v0.2.0 | Do not recommend over v0.2.0 |
+| `v0.1.1` | Retired / superseded | Production history | Superseded by later releases | Do not recommend |
 | `v0.1.0` | Retired | Production history | Broken | Do not recommend |
 
 ## Current recommendation
 
-`v0.1.2` remains the current **Stable / Production / Working** release until the exact `v0.3.0` Chrome Web Store package is reviewed, installed from the store, and passes the Stable release gate.
+`v0.2.0` is the current **Stable / Production / Working** Chrome Web Store release until the exact `v0.3.0` Chrome Web Store package is reviewed, installed from the store, and passes the Stable release gate.
 
 `v0.3.0` is the current **Preview / release candidate**. Automated CI passes and manual testing is underway, including an extended real-world tester pass. Track the release checklist in [issue #18](https://github.com/medkit992/Blackbox-API-Visualizer/issues/18).
 
@@ -29,6 +29,7 @@ This file is the human-readable source of truth for which Blackbox builds are re
 - Bounded same-origin source-map discovery for captured scripts when DevTools has not already exposed the map.
 - Laptop-sized DevTools layout/scroll improvements.
 - Updated privacy/consent disclosures for response/source/provenance analysis.
+- Versioned consent so users who accepted the older disclosure are prompted once for the expanded v0.3.0 data-access disclosure before capture resumes.
 
 ## Known release-candidate limitations
 
