@@ -3,6 +3,7 @@ import "./sponsor.js";
 import { analyzeRequest } from "../network/analyzer.js";
 import { diagnoseRequest } from "../network/diagnosticAnalyzer.js";
 import type { RequestDiagnosis } from "../network/diagnosticRules.js";
+import { getBestInitiatorSource } from "../network/initiatorSource.js";
 import type { NormalizedRequest, RequestAnalysis } from "../network/types.js";
 import {
   copyDebugSummary,
@@ -18,6 +19,7 @@ const responseLoads = new Map<string, Promise<void>>();
 
 const requestList = document.getElementById("request-list");
 const rawResponse = document.getElementById("details-response-body");
+const detailsInitiator = document.getElementById("details-initiator");
 const diagnosisStatus = document.getElementById("diagnosis-status");
 const copySummaryButton = document.getElementById(
   "copy-debug-summary"
@@ -49,6 +51,16 @@ function renderResponseBody(request: NormalizedRequest): void {
   }
 
   rawResponse.textContent = content || "(empty response body)";
+}
+
+function renderInitiatorSource(request: NormalizedRequest): void {
+  if (!detailsInitiator) {
+    return;
+  }
+
+  const source = getBestInitiatorSource(request.initiator);
+  detailsInitiator.textContent = source?.label ?? "N/A";
+  detailsInitiator.title = source?.url ?? "";
 }
 
 function analyzeSelectedRequest(): void {
@@ -128,6 +140,7 @@ function selectRequest(request: NormalizedRequest): void {
     copySummaryButton.disabled = false;
   }
 
+  renderInitiatorSource(request);
   analyzeSelectedRequest();
   void loadResponseBody(request);
 }
@@ -141,6 +154,11 @@ function clearRuntimeState(): void {
 
   if (copySummaryButton) {
     copySummaryButton.disabled = true;
+  }
+
+  if (detailsInitiator) {
+    detailsInitiator.textContent = "N/A";
+    detailsInitiator.title = "";
   }
 
   resetRequestDiagnosis();
