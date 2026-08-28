@@ -180,4 +180,68 @@ export default function ExploreItems() {
     });
     expect(result?.url).not.toContain("node_modules");
   });
+
+  it("resolves the matching module from a webpack eval-source-map bundle", async () => {
+    const endpoint = "https://api.example.com/explore";
+    const authoredSource = `
+export const fetchExploreItems = async () => {
+  const response = await fetch("${endpoint}");
+  return response.json();
+};
+`;
+    const moduleMap = encodeURIComponent(
+      JSON.stringify({
+        version: 3,
+        sources: ["webpack:///src/components/ExploreItems.jsx"],
+        sourcesContent: [authoredSource],
+        names: ["fetchExploreItems"],
+        mappings: "AAAAA",
+      })
+    );
+
+    const generatedUrl = "https://student.example.com/bundle.js";
+    const generatedContent = `eval("const fetchExploreItems=async()=>fetch('${endpoint}');\\n//# sourceMappingURL=data:application/json,${moduleMap}\\n//# sourceURL=webpack:///src/components/ExploreItems.jsx");`;
+
+    const result = await resolveAuthoredSource(
+      makeRequest({ url: endpoint, path: "/explore", category: "Fetch" }),
+      {
+        label: "bundle.js:20:12",
+        source: "stack",
+        url: generatedUrl,
+        lineNumber: 20,
+        columnNumber: 12,
+      },
+      [resource(generatedUrl, generatedContent)]
+    );
+
+    expect(result).toMatchObject({
+      file: "src/components/ExploreItems.jsx",
+      functionName: "fetchExploreItems",
+      method: "source-content",
+    });
+  });
+
+  it("returns no authored source when two files are equally plausible", async () => {
+    const endpoint = "https://api.example.com/shared";
+    const generatedUrl = "https://example.com/bundle.js";
+    const sharedRequest = `export const load = async () => fetch("${endpoint}");`;
+
+    const result = await resolveAuthoredSource(
+      makeRequest({ url: endpoint, path: "/shared", category: "Fetch" }),
+      {
+        label: "bundle.js:20:10",
+        source: "stack",
+        url: generatedUrl,
+        lineNumber: 20,
+        columnNumber: 10,
+      },
+      [
+        resource(generatedUrl, "console.log('bundle');"),
+        resource("webpack:///src/first.ts", sharedRequest),
+        resource("webpack:///src/second.ts", sharedRequest),
+      ]
+    );
+
+    expect(result).toBeNull();
+  });
 });
