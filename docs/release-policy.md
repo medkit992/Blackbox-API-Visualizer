@@ -46,6 +46,7 @@ Health can change after release. A previously stable build may become Retired if
 A version may be marked **Stable** only after all applicable checks pass:
 
 - [ ] Dependency installation succeeds from a clean checkout.
+- [ ] `package.json`, `package-lock.json`, source manifest, and built manifest versions are aligned.
 - [ ] Type checking passes.
 - [ ] Automated tests pass.
 - [ ] Production build succeeds.
@@ -54,7 +55,11 @@ A version may be marked **Stable** only after all applicable checks pass:
 - [ ] Core request capture works on representative pages.
 - [ ] Request inspection works for successful and failed requests.
 - [ ] Response-body inspection works where Chromium exposes the response.
+- [ ] Diagnostic behavior degrades conservatively when evidence is incomplete.
+- [ ] Source/provenance analysis returns truthful fallbacks when authored context is unavailable or ambiguous.
 - [ ] Graph/list navigation works without breaking captured-session state.
+- [ ] Privacy/consent text accurately describes the current response/source/provenance behavior.
+- [ ] Chrome Web Store Privacy practices disclosures match the actual data handled by the extension.
 - [ ] The exact packaged build intended for distribution is tested.
 - [ ] The Chrome Web Store build installs/updates successfully.
 - [ ] The Chrome Web Store build passes the same core regression test as the local build.
@@ -70,6 +75,8 @@ Development
 Preview / Release Candidate
     ↓
 Package + automated verification
+    ↓
+Extended/manual testing
     ↓
 Test channel (when useful)
     ↓
@@ -87,18 +94,42 @@ If production verification fails, the release remains non-stable and should be m
 When GitHub Releases are used:
 
 - Development work normally does not require a GitHub Release.
-- Preview builds should be GitHub **pre-releases** and may use tags such as `v0.2.0-beta.1` or `v0.2.0-rc.1`.
-- Stable builds should use normal GitHub Releases such as `v0.2.0`.
-- A broken or superseded release should remain visible for history, with its release notes updated to state that it is Retired/Broken and point users to the recommended version.
+- Preview builds may be GitHub **pre-releases** and may use tags such as `v0.3.0-beta.1` or `v0.3.0-rc.1`.
+- A version intended to match a Chrome Web Store submission may use the final numeric tag (for example `v0.3.0`) while its repository release-status documentation remains **Preview** until the distributed Web Store build is verified.
+- Once the exact distributed build passes the Stable gate, the same version can be promoted to **Stable** in release-status documentation without changing the version number.
+- A broken or superseded release should remain visible for history, with its release notes/status updated to point users to the recommended version.
 
 Chrome extension manifest versions must remain numeric. If preview builds are distributed through Chrome, use a Chrome-compatible numeric `version` and, when useful, a descriptive `version_name` for labels such as beta or release candidate.
+
+## Release packaging conventions
+
+For Chrome Web Store and GitHub binary packages:
+
+- Build from the intended merged/tagged commit.
+- Run the full CI-equivalent validation before packaging.
+- ZIP the **contents of `dist/`**, so `manifest.json` is at the ZIP root.
+- Do not ZIP the repository root, source tree, `node_modules`, or an extra parent `dist/` directory.
+- Load/test the exact ZIP (or its extracted contents) before submitting it to the Chrome Web Store.
+- Keep release binaries in GitHub Releases rather than treating an old checked-in ZIP as the source of truth for the current release.
+
+## Privacy release gate
+
+Any change to what Blackbox reads or how it uses sensitive website/network data must be reviewed as part of release preparation.
+
+At minimum:
+
+1. Update the in-product disclosure/consent text when the user-facing data-access behavior materially changes.
+2. Update `PRIVACY.md` and the published privacy page.
+3. Confirm the Chrome Web Store Privacy practices data-type disclosures still cover the data handled.
+4. Confirm Limited Use statements remain accurate and all data handling is necessary for Blackbox's disclosed developer-tool purpose.
+5. Avoid adding broader permissions/host access when a narrower DevTools/same-origin mechanism can implement the feature.
 
 ## Release record format
 
 Release notes and verification issues should record these four independent values:
 
 ```text
-Version: 0.2.0
+Version: 0.3.0
 Stage: Preview | Stable | Retired
 Channel: Local | Test | Production
 Health: Working | Known issues | Broken
@@ -106,7 +137,8 @@ Health: Working | Known issues | Broken
 
 ## Current early-release interpretation
 
-- **v0.1.0** — reached the Chrome Web Store, but the distributed build is known to be broken. Treat it as **Retired / Production / Broken**.
-- **v0.1.1** — superseded by the capture-reliability patch and should no longer be the recommended build.
-- **v0.1.2** — verified working through the Chrome Web Store and treated as the current **Stable / Production / Working** release.
-- **v0.2.0** — feature-complete response-explorer release candidate. Treat it as **Preview / Local-Test / Working** until the exact packaged Chrome Web Store build passes the Stable release gate; then promote the same version to **Stable / Production / Working**.
+- **v0.1.0** — reached the Chrome Web Store, but the distributed build is known to be broken. Treat it as **Retired / Production history / Broken**.
+- **v0.1.1** — superseded by the capture-reliability patch and no longer recommended.
+- **v0.1.2** — verified working through the Chrome Web Store and remains the current **Stable / Production / Working** release until a later version passes the Stable gate.
+- **v0.2.0** — Response Explorer candidate superseded before production verification; its functionality is carried forward into v0.3.0.
+- **v0.3.0** — Request Debugger / Source Context release candidate. Treat it as **Preview / Local-Test / Working** until the exact packaged Chrome Web Store build passes the Stable release gate; then promote the same version to **Stable / Production / Working**.
