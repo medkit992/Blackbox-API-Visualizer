@@ -263,7 +263,9 @@
                 <div><dt>Duration</dt><dd id="details-duration"></dd></div>
                 <div><dt>Response Size</dt><dd id="details-response-size"></dd></div>
                 <div><dt>Priority</dt><dd id="details-priority"></dd></div>
-                <div><dt>Initiator</dt><dd id="details-initiator"></dd></div>
+                <div><dt>Source</dt><dd id="details-source">N/A</dd></div>
+                <div><dt>Relationship</dt><dd id="details-relationship">N/A</dd></div>
+                <div><dt>Browser Initiator</dt><dd id="details-initiator"></dd></div>
                 <div><dt>Server IP</dt><dd id="details-server-ip"></dd></div>
               </dl>
             </section>
@@ -322,13 +324,15 @@
         </p>
         <p class="consent-dialog__notice">
           This data may include <strong>URLs, headers, cookies or authentication values,
-          query parameters, request bodies, response data, and timing metadata</strong>.
+          query parameters, request bodies, response data, source resources, and timing metadata</strong>.
           Blackbox processes this information locally in the DevTools extension and does not
           send captured traffic to Blackbox servers.
         </p>
         <p>
-          Response bodies are retrieved automatically when you select a captured request so Blackbox
-          can populate the response view and use the body as local diagnostic context. You can pause
+          Response bodies are retrieved automatically when you select a captured request. When
+          tracing where a resource came from, Blackbox may also inspect a bounded set of recent
+          successful Fetch/XHR responses and source resources exposed by DevTools to find exact
+          URL relationships and authored source locations. This context stays local. You can pause
           capture, clear the current session, or revoke access from Privacy at any time.
         </p>
         <a
