@@ -90,8 +90,8 @@
       <section class="summary">
         <strong>Summary</strong>
         <ul>
-          <li>Blackbox processes captured network data locally inside the DevTools extension.</li>
-          <li>Blackbox does not send captured network traffic to Blackbox-operated servers.</li>
+          <li>Blackbox processes captured network data and source context locally inside the DevTools extension.</li>
+          <li>Blackbox does not send captured network traffic or source content to Blackbox-operated servers.</li>
           <li>Blackbox does not sell captured data or use it for advertising, profiling, credit decisions, or unrelated purposes.</li>
           <li>Network capture does not begin until you explicitly choose <strong>Start capturing</strong>.</li>
           <li>You can pause capture, clear the current session, or revoke capture access from the <strong>Privacy</strong> control.</li>
@@ -101,7 +101,7 @@
       <h2>Information Blackbox Can Process</h2>
       <p>
         When you grant network access and use Blackbox on an inspected page, the extension can
-        process information exposed by the Chrome DevTools Network API, including:
+        process information exposed by Chrome DevTools, including:
       </p>
       <ul>
         <li>request URLs, hosts, paths, methods, and query parameters;</li>
@@ -109,54 +109,82 @@
         <li>cookies and authentication-related values that may appear in requests or responses;</li>
         <li>request bodies and submitted payloads;</li>
         <li>response status information, MIME types, redirects, and size metadata;</li>
-        <li>network timing, resource type, cache information, initiator information, connection information, and server IP addresses; and</li>
-        <li>response bodies for captured requests that you select in the request inspector.</li>
+        <li>network timing, resource type, cache information, initiator information, connection information, and server IP addresses;</li>
+        <li>response bodies for captured requests that you select in the request inspector;</li>
+        <li>a bounded set of recent successful Fetch/XHR response bodies when tracing whether a selected derived resource URL came from earlier API response data; and</li>
+        <li>script/source resources and source maps exposed locally by DevTools when mapping generated bundle locations back to authored source files.</li>
       </ul>
       <p>
         Depending on the website being inspected, this information may contain personal information,
-        authentication tokens, session identifiers, or other sensitive content. Blackbox displays this
-        information because inspecting the actual network exchange is the core function of the extension.
+        authentication tokens, session identifiers, application source code, or other sensitive content.
+        Blackbox uses this information because inspecting the actual network exchange and its local source
+        context is the core function of the extension.
       </p>
 
       <h2>How Blackbox Uses This Information</h2>
-      <p>Blackbox uses captured network information only to provide its user-facing developer tools, including:</p>
+      <p>Blackbox uses captured network and source information only to provide its user-facing developer tools, including:</p>
       <ul>
         <li>the request list and request inspector;</li>
         <li>request and response metadata views;</li>
         <li>timing and performance information;</li>
         <li>request-level diagnostics and diagnostic context;</li>
+        <li>source-file and function correlation when reliable local evidence is available;</li>
+        <li>exact resource provenance relationships, such as a resource URL found in a previous API response;</li>
         <li>duplicate-request, polling, endpoint, domain, and error analysis;</li>
         <li>session insights;</li>
         <li>copied debug summaries that intentionally omit raw headers, cookies, authorization values, and request/response bodies; and</li>
         <li>the interactive network graph.</li>
       </ul>
       <p>
-        Blackbox does not use captured traffic for advertising, behavioral profiling, marketing,
-        eligibility decisions, or any purpose unrelated to network inspection.
+        Blackbox does not use captured traffic or source content for advertising, behavioral profiling,
+        marketing, eligibility decisions, or any purpose unrelated to its developer-tool functionality.
+      </p>
+
+      <h2>Source and Relationship Analysis</h2>
+      <p>
+        When you select certain derived resources such as images, media, scripts, stylesheets, fonts,
+        manifests, or similar resources, Blackbox may inspect a bounded set of recent successful Fetch/XHR
+        response bodies already available through DevTools. It looks for exact URL relationships between
+        the selected resource and values returned by those API responses. Blackbox does not use fuzzy
+        matching to claim these relationships.
+      </p>
+      <p>
+        When DevTools exposes generated scripts, authored source resources, or source maps, Blackbox may
+        read them locally to map generated JavaScript locations back to original JavaScript, JSX,
+        TypeScript, TSX, Vue, Svelte, Astro, or other source files. Blackbox only reports an authored
+        extension or filename when that information exists in actual source/source-map evidence; it does
+        not rename generated <code>.js</code> files to another language based on a framework guess.
+      </p>
+      <p>
+        Blackbox does not remotely fetch source maps or source files from a Blackbox service. Source
+        correlation is limited to content exposed by the inspected page, captured network resources, and
+        DevTools resources available in the local browser session.
       </p>
 
       <h2>Data Transmission and Sharing</h2>
       <p>
-        Blackbox does not transmit captured network traffic to Blackbox-operated servers. Blackbox
-        does not sell captured network data and does not share captured network data with advertisers,
-        data brokers, or unrelated third parties. The extension analyzes the information locally in the
-        DevTools extension context on your device.
+        Blackbox does not transmit captured network traffic or inspected source content to Blackbox-operated
+        servers. Blackbox does not sell captured network data and does not share captured network data or
+        source content with advertisers, data brokers, or unrelated third parties. The extension analyzes
+        the information locally in the DevTools extension context on your device.
       </p>
 
       <h2>Storage and Retention</h2>
       <p>
-        Captured request and session data is kept in memory for the active DevTools session so Blackbox
-        can render the request table, details, insights, diagnostics, and graph.
+        Captured request, response, source-context, and session data is kept in memory for the active DevTools
+        session so Blackbox can render the request table, details, insights, diagnostics, source relationships,
+        and graph.
       </p>
       <ul>
         <li>Choosing <strong>Clear</strong> removes the current captured session from Blackbox.</li>
-        <li>Navigating the inspected page resets the current captured session.</li>
+        <li>Navigating the inspected page resets the current captured session and source-context cache.</li>
         <li>Closing the DevTools panel ends the in-memory session.</li>
         <li>Response bodies are retrieved automatically when you select a captured request and are kept only in the active in-memory session.</li>
+        <li>Additional recent Fetch/XHR bodies or source resources inspected for provenance/source correlation are cached only in memory for the active DevTools session.</li>
       </ul>
       <p>
         Blackbox stores a small local preference indicating whether you granted network-capture consent.
-        This preference contains no captured network traffic. You can remove it by choosing
+        This preference contains no captured network traffic or source content. You can remove it by choosing
         <strong>Privacy → Revoke access</strong>, clearing the extension's local data, or uninstalling the extension.
       </p>
 
@@ -168,15 +196,17 @@
         <li><strong>Clear</strong> — removes the current captured session from the Blackbox interface.</li>
         <li><strong>Privacy → Revoke access</strong> — disables future capture and clears the current Blackbox session.</li>
         <li>Selecting a captured request retrieves its response body automatically so the response view and local debugger can use it as context.</li>
+        <li>Selecting a derived resource may trigger bounded local provenance/source analysis as described above.</li>
       </ul>
 
       <h2>Security</h2>
       <p>
-        Network traffic may contain credentials, tokens, cookies, personal data, or application secrets.
-        Treat information displayed in Blackbox as sensitive and avoid sharing screenshots or other material
-        that exposes confidential values. Blackbox is designed to minimize exposure by processing captured
-        traffic locally rather than sending it to a Blackbox backend. The built-in debug-summary formatter
-        also avoids copying raw headers, cookies, authorization values, and request/response bodies by default.
+        Network traffic and source resources may contain credentials, tokens, cookies, personal data,
+        application secrets, or proprietary source code. Treat information displayed in Blackbox as sensitive
+        and avoid sharing screenshots or other material that exposes confidential values. Blackbox is designed
+        to minimize exposure by processing captured traffic and source context locally rather than sending it
+        to a Blackbox backend. The built-in debug-summary formatter also avoids copying raw headers, cookies,
+        authorization values, and request/response bodies by default.
       </p>
 
       <h2>Children's Privacy</h2>
