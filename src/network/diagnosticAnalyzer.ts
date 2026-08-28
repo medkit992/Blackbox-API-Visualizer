@@ -7,6 +7,7 @@ import {
   type DiagnosticRuleDefinition,
   type RequestDiagnosis,
 } from "./diagnosticRules.js";
+import { formatInitiatorSource } from "./initiatorSource.js";
 import type {
   Header,
   NormalizedRequest,
@@ -163,20 +164,6 @@ export function extractResponseMessage(request: NormalizedRequest): string | nul
   return compacted || null;
 }
 
-function formatInitiator(request: NormalizedRequest): string | null {
-  const initiator = request.initiator;
-  if (!initiator) {
-    return null;
-  }
-
-  const source = initiator.url ?? initiator.type;
-  if (initiator.lineNumber === undefined) {
-    return source;
-  }
-
-  return `${source}:${initiator.lineNumber}`;
-}
-
 function evidenceValue(
   definition: DiagnosticEvidenceDefinition,
   request: NormalizedRequest
@@ -221,7 +208,7 @@ function evidenceValue(
       return getHeader(request.responseHeaders, "location") ?? null;
 
     case "initiator":
-      return formatInitiator(request);
+      return formatInitiatorSource(request.initiator);
 
     case "cache":
       return request.cached ? "Served from browser cache" : "Network response";
