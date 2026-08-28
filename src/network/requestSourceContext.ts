@@ -33,6 +33,18 @@ export interface RequestSourceContextInput {
   loadResponseBody: ResponseBodyLoader;
 }
 
+const PROVENANCE_TARGETS = new Set<NormalizedRequest["category"]>([
+  "Image",
+  "Media",
+  "Font",
+  "Script",
+  "Stylesheet",
+  "TextTrack",
+  "Manifest",
+  "Prefetch",
+  "Other",
+]);
+
 async function resolveForRequest(
   request: NormalizedRequest,
   resources: readonly SourceResource[]
@@ -52,7 +64,9 @@ export async function buildRequestSourceContext({
   loadResponseBody,
 }: RequestSourceContextInput): Promise<RequestSourceContext> {
   const browser = await resolveForRequest(request, resources);
-  const provenance = await findRequestProvenance(request, timeline, loadResponseBody);
+  const provenance = PROVENANCE_TARGETS.has(request.category)
+    ? await findRequestProvenance(request, timeline, loadResponseBody)
+    : null;
 
   if (provenance) {
     const parent = await resolveForRequest(provenance.request, resources);
