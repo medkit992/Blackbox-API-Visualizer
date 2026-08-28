@@ -137,4 +137,47 @@ export default function ExploreItems() {
       method: "source-content",
     });
   });
+
+  it("does not treat an embedded webpack eval-module source map as the map for the whole bundle", async () => {
+    const wrongMap = encodeURIComponent(
+      JSON.stringify({
+        version: 3,
+        sources: ["webpack:///node_modules/framework/internal.js"],
+        sourcesContent: ["export function internal() {}"],
+        names: ["internal"],
+        mappings: "AAAAA",
+      })
+    );
+
+    const generatedUrl = "https://example.com/bundle.js";
+    const generatedContent = `eval("code\\n//# sourceMappingURL=data:application/json,${wrongMap}");`;
+
+    const result = await resolveAuthoredSource(
+      makeRequest({
+        url: "https://api.example.com/explore",
+        path: "/explore",
+      }),
+      {
+        label: "bundle.js:10:5",
+        source: "stack",
+        url: generatedUrl,
+        lineNumber: 10,
+        columnNumber: 5,
+      },
+      [
+        resource(generatedUrl, generatedContent),
+        resource(
+          "webpack:///src/ExploreItems.jsx",
+          `const fetchExploreItems = async () => fetch("https://api.example.com/explore");`
+        ),
+      ]
+    );
+
+    expect(result).toMatchObject({
+      file: "src/ExploreItems.jsx",
+      functionName: "fetchExploreItems",
+      method: "source-content",
+    });
+    expect(result?.url).not.toContain("node_modules");
+  });
 });
