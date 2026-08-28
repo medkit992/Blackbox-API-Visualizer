@@ -1,23 +1,32 @@
 import "./sponsor.js";
 
 import { analyzeRequest } from "../network/analyzer.js";
-import type { NormalizedRequest } from "../network/types.js";
+import { diagnoseRequest } from "../network/diagnosticAnalyzer.js";
+import type { RequestDiagnosis } from "../network/diagnosticRules.js";
+import type { NormalizedRequest, RequestAnalysis } from "../network/types.js";
 import {
   copyDebugSummary,
   formatDebugSummary,
 } from "../utils/debugSummary.js";
+import {
+  renderRequestDiagnosis,
+  resetRequestDiagnosis,
+} from "./request-debugger-view.js";
 
 const requestsById = new Map<string, NormalizedRequest>();
 const responseLoads = new Map<string, Promise<void>>();
 
 const requestList = document.getElementById("request-list");
 const rawResponse = document.getElementById("details-response-body");
+const diagnosisStatus = document.getElementById("diagnosis-status");
 const copySummaryButton = document.getElementById(
   "copy-debug-summary"
 ) as HTMLButtonElement | null;
 const closeDetailsButton = document.getElementById("close-details");
 
 let selectedRequest: NormalizedRequest | null = null;
+let selectedAnalysis: RequestAnalysis | null = null;
+let selectedDiagnosis: RequestDiagnosis | null = null;
 
 function renderResponseBody(request: NormalizedRequest): void {
   if (!rawResponse || selectedRequest?.id !== request.id) {
@@ -40,6 +49,19 @@ function renderResponseBody(request: NormalizedRequest): void {
   }
 
   rawResponse.textContent = content || "(empty response body)";
+}
+
+function analyzeSelectedRequest(): void {
+  if (!selectedRequest) {
+    selectedAnalysis = null;
+    selectedDiagnosis = null;
+    resetRequestDiagnosis();
+    return;
+  }
+
+  selectedAnalysis = analyzeRequest(selectedRequest);
+  selectedDiagnosis = diagnoseRequest(selectedRequest, selectedAnalysis);
+  renderRequestDiagnosis(selectedRequest, selectedDiagnosis);
 }
 
 function loadResponseBody(request: NormalizedRequest): Promise<void> {
@@ -81,6 +103,14 @@ function loadResponseBody(request: NormalizedRequest): Promise<void> {
         rawResponse.textContent = "Response body is no longer available.";
       }
 
+      if (selectedRequest?.id === request.id) {
+        analyzeSelectedRequest();
+        if (diagnosisStatus) {
+          diagnosisStatus.textContent =
+            "Analyzed from request metadata · response body unavailable";
+        }
+      }
+
       resolve();
     }
   }).finally(() => {
@@ -98,6 +128,7 @@ function selectRequest(request: NormalizedRequest): void {
     copySummaryButton.disabled = false;
   }
 
+  analyzeSelectedRequest();
   void loadResponseBody(request);
 }
 
@@ -105,15 +136,29 @@ function clearRuntimeState(): void {
   requestsById.clear();
   responseLoads.clear();
   selectedRequest = null;
+  selectedAnalysis = null;
+  selectedDiagnosis = null;
 
   if (copySummaryButton) {
     copySummaryButton.disabled = true;
   }
+
+  resetRequestDiagnosis();
 }
 
 document.addEventListener("normalizedRequestsUpdated", (event) => {
   const detail = (event as CustomEvent<NormalizedRequest[]>).detail ?? [];
   detail.forEach((request) => requestsById.set(request.id, request));
+});
+
+document.addEventListener("responseBodyLoaded", (event) => {
+  const request = (event as CustomEvent<NormalizedRequest>).detail;
+  if (!request || selectedRequest?.id !== request.id) {
+    return;
+  }
+
+  selectedRequest = request;
+  analyzeSelectedRequest();
 });
 
 document.addEventListener("pageReloaded", clearRuntimeState);
@@ -138,9 +183,14 @@ requestList?.addEventListener("click", (event) => {
 
 closeDetailsButton?.addEventListener("click", () => {
   selectedRequest = null;
+  selectedAnalysis = null;
+  selectedDiagnosis = null;
+
   if (copySummaryButton) {
     copySummaryButton.disabled = true;
   }
+
+  resetRequestDiagnosis();
 });
 
 copySummaryButton?.addEventListener("click", async () => {
@@ -148,12 +198,15 @@ copySummaryButton?.addEventListener("click", async () => {
     return;
   }
 
+  const analysis = selectedAnalysis ?? analyzeRequest(selectedRequest);
+  const diagnosis = selectedDiagnosis ?? diagnoseRequest(selectedRequest, analysis);
   const originalLabel = copySummaryButton.textContent ?? "Copy Debug Summary";
 
   try {
     const summary = formatDebugSummary({
       request: selectedRequest,
-      analysis: analyzeRequest(selectedRequest),
+      analysis,
+      diagnosis,
     });
 
     await copyDebugSummary(summary);
@@ -167,3 +220,5 @@ copySummaryButton?.addEventListener("click", async () => {
     copySummaryButton.textContent = originalLabel;
   }, 1000);
 });
+
+resetRequestDiagnosis();
