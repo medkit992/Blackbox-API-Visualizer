@@ -51,16 +51,16 @@ Blackbox is pre-1.0; minor releases may still evolve quickly while the core work
 - Added the visual Tree / Raw Response Explorer.
 - Added collapsible JSON objects/arrays, value-type display, JavaScript response-path generation, and Copy Path.
 - Added graceful fallbacks for non-JSON, image, empty, loading, and unavailable response bodies.
-- This candidate was superseded by v0.3.0 before completing Chrome Web Store production verification; all Response Explorer functionality is carried forward.
+- Verified through the Chrome Web Store and is the current Stable production release until v0.3.0 completes production verification.
 
 ## [0.1.2]
 
-- Capture/reliability patch verified working through the Chrome Web Store.
-- Current Stable production release until a later release passes the production Stable gate.
+- Capture/reliability patch previously verified through the Chrome Web Store.
+- Superseded by the verified v0.2.0 Stable release.
 
 ## [0.1.1]
 
-- Superseded by v0.1.2.
+- Superseded by later releases.
 
 ## [0.1.0]
 
