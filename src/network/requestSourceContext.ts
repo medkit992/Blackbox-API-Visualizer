@@ -16,6 +16,7 @@ import {
   type SourceResource,
 } from "./sourceMapResolver.js";
 import type { NormalizedRequest } from "./types.js";
+import { resolveWebpackModuleSource } from "./webpackModuleResolver.js";
 
 export interface RequestSourceContext {
   primarySource: string | null;
@@ -45,6 +46,20 @@ const PROVENANCE_TARGETS = new Set<NormalizedRequest["category"]>([
   "Other",
 ]);
 
+function sameResource(left: string | undefined, right: string | undefined): boolean {
+  if (!left || !right) return false;
+
+  try {
+    const a = new URL(left);
+    const b = new URL(right);
+    a.hash = "";
+    b.hash = "";
+    return a.href === b.href;
+  } catch {
+    return left === right;
+  }
+}
+
 async function resolveForRequest(
   request: NormalizedRequest,
   resources: readonly SourceResource[]
@@ -53,7 +68,25 @@ async function resolveForRequest(
   authored: AuthoredSourceLocation | null;
 }> {
   const initiator = getBestInitiatorSource(request.initiator);
-  const authored = await resolveAuthoredSource(request, initiator, resources);
+
+  // Development bundles can contain many authored modules in one generated file.
+  // Resolve the exact module/sourceURL around the endpoint before falling back to
+  // bundle-level source-map or source-content correlation.
+  const webpackModule = await resolveWebpackModuleSource(
+    request,
+    initiator,
+    resources
+  );
+
+  const resolved =
+    webpackModule ?? (await resolveAuthoredSource(request, initiator, resources));
+
+  // A text search that simply rediscovers the generated bundle is useful as a
+  // browser location, but it is not authored source. Keep it as the initiator
+  // fallback instead of presenting bundle.js/main.js as the original file.
+  const authored =
+    resolved && !sameResource(resolved.url, initiator?.url) ? resolved : null;
+
   return { initiator, authored };
 }
 
