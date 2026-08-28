@@ -332,8 +332,10 @@
           Response bodies are retrieved automatically when you select a captured request. When
           tracing where a resource came from, Blackbox may also inspect a bounded set of recent
           successful Fetch/XHR responses and source resources exposed by DevTools to find exact
-          URL relationships and authored source locations. This context stays local. You can pause
-          capture, clear the current session, or revoke access from Privacy at any time.
+          URL relationships and authored source locations. If a generated same-origin script has
+          a conventional sibling source-map file, Blackbox may request that map locally from the
+          inspected site to resolve the original source file. This context stays local. You can
+          pause capture, clear the current session, or revoke access from Privacy at any time.
         </p>
         <a
           class="consent-dialog__link"
