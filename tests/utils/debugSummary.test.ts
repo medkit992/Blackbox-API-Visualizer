@@ -34,6 +34,37 @@ describe("formatDebugSummary", () => {
     expect(summary).not.toContain("do-not-copy");
   });
 
+  it("keeps the friendly initiator and exact generated location for hashed builds", () => {
+    const request = makeRequest({
+      initiator: {
+        type: "script",
+        stack: {
+          callFrames: [
+            {
+              functionName: "x0",
+              url: "https://student.example.com/js/main.82e7f31e.js",
+              lineNumber: 1,
+              columnNumber: 183666,
+            },
+          ],
+        },
+      },
+    });
+
+    const summary = formatDebugSummary({
+      request,
+      analysis: {
+        severity: "none",
+        issues: [],
+      },
+    });
+
+    expect(summary).toContain("Initiated by: main.js:2:183667");
+    expect(summary).toContain(
+      "Generated location: js/main.82e7f31e.js:2:183667"
+    );
+  });
+
   it("formats a future structured diagnosis without changing the clipboard path", () => {
     const request = makeRequest({ status: 404, statusText: "Not Found", outcome: "client-error" });
     const diagnosis: RequestDiagnosis = {
