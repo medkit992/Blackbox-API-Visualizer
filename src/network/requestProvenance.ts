@@ -13,6 +13,7 @@ const API_CATEGORIES = new Set<NormalizedRequest["category"]>(["Fetch", "XHR"]);
 const MAX_CANDIDATES = 12;
 const MAX_WALK_DEPTH = 12;
 const MAX_VALUES = 5000;
+const COMPLETION_TOLERANCE_MS = 50;
 
 function canonicalUrl(value: string, baseUrl: string): string | null {
   try {
@@ -49,7 +50,11 @@ function findUrlInJson(
 ): { path: string; value: string } | null {
   let visited = 0;
 
-  function walk(current: unknown, path: string, depth: number): { path: string; value: string } | null {
+  function walk(
+    current: unknown,
+    path: string,
+    depth: number
+  ): { path: string; value: string } | null {
     if (depth > MAX_WALK_DEPTH || visited >= MAX_VALUES) {
       return null;
     }
@@ -64,7 +69,11 @@ function findUrlInJson(
 
     if (Array.isArray(current)) {
       for (let index = 0; index < current.length; index += 1) {
-        const found = walk(current[index], nextPath(path || "data", index, true), depth + 1);
+        const found = walk(
+          current[index],
+          nextPath(path || "data", index, true),
+          depth + 1
+        );
         if (found) return found;
       }
       return null;
@@ -75,7 +84,11 @@ function findUrlInJson(
     }
 
     for (const [key, child] of Object.entries(current as Record<string, unknown>)) {
-      const found = walk(child, nextPath(path || "data", key, false), depth + 1);
+      const found = walk(
+        child,
+        nextPath(path || "data", key, false),
+        depth + 1
+      );
       if (found) return found;
     }
 
@@ -106,12 +119,16 @@ function findUrlInText(
   return null;
 }
 
-function isEarlier(candidate: NormalizedRequest, selected: NormalizedRequest): boolean {
-  const candidateTime = Date.parse(candidate.startedAt);
-  const selectedTime = Date.parse(selected.startedAt);
+function completedBefore(
+  candidate: NormalizedRequest,
+  selected: NormalizedRequest
+): boolean {
+  const candidateStart = Date.parse(candidate.startedAt);
+  const selectedStart = Date.parse(selected.startedAt);
 
-  if (Number.isFinite(candidateTime) && Number.isFinite(selectedTime)) {
-    return candidateTime <= selectedTime;
+  if (Number.isFinite(candidateStart) && Number.isFinite(selectedStart)) {
+    const candidateEnd = candidateStart + Math.max(candidate.duration, 0);
+    return candidateEnd <= selectedStart + COMPLETION_TOLERANCE_MS;
   }
 
   return candidate.id !== selected.id;
@@ -125,7 +142,7 @@ function candidateRequests(
     .filter((request) => request.id !== selected.id)
     .filter((request) => API_CATEGORIES.has(request.category))
     .filter((request) => request.status >= 200 && request.status < 300)
-    .filter((request) => isEarlier(request, selected))
+    .filter((request) => completedBefore(request, selected))
     .sort((left, right) => Date.parse(right.startedAt) - Date.parse(left.startedAt))
     .slice(0, MAX_CANDIDATES);
 }
