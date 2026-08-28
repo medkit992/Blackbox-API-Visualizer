@@ -77,7 +77,7 @@
       <header>
         <p class="eyebrow">Blackbox API Visualizer</p>
         <h1>Privacy Policy</h1>
-        <p class="muted">Effective August 22, 2026</p>
+        <p class="muted">Effective August 28, 2026</p>
       </header>
 
       <p>
@@ -110,7 +110,7 @@
         <li>request bodies and submitted payloads;</li>
         <li>response status information, MIME types, redirects, and size metadata;</li>
         <li>network timing, resource type, cache information, initiator information, connection information, and server IP addresses; and</li>
-        <li>response bodies when you explicitly select <strong>Load Response</strong>.</li>
+        <li>response bodies for captured requests that you select in the request inspector.</li>
       </ul>
       <p>
         Depending on the website being inspected, this information may contain personal information,
@@ -124,9 +124,10 @@
         <li>the request list and request inspector;</li>
         <li>request and response metadata views;</li>
         <li>timing and performance information;</li>
-        <li>request-level diagnostics;</li>
+        <li>request-level diagnostics and diagnostic context;</li>
         <li>duplicate-request, polling, endpoint, domain, and error analysis;</li>
-        <li>session insights; and</li>
+        <li>session insights;</li>
+        <li>copied debug summaries that intentionally omit raw headers, cookies, authorization values, and request/response bodies; and</li>
         <li>the interactive network graph.</li>
       </ul>
       <p>
@@ -145,13 +146,13 @@
       <h2>Storage and Retention</h2>
       <p>
         Captured request and session data is kept in memory for the active DevTools session so Blackbox
-        can render the request table, details, insights, and graph.
+        can render the request table, details, insights, diagnostics, and graph.
       </p>
       <ul>
         <li>Choosing <strong>Clear</strong> removes the current captured session from Blackbox.</li>
         <li>Navigating the inspected page resets the current captured session.</li>
         <li>Closing the DevTools panel ends the in-memory session.</li>
-        <li>Response bodies are retrieved only after you explicitly select <strong>Load Response</strong>.</li>
+        <li>Response bodies are retrieved automatically when you select a captured request and are kept only in the active in-memory session.</li>
       </ul>
       <p>
         Blackbox stores a small local preference indicating whether you granted network-capture consent.
@@ -166,7 +167,7 @@
         <li><strong>Pause / Resume</strong> — temporarily stops or resumes capture after consent has been granted.</li>
         <li><strong>Clear</strong> — removes the current captured session from the Blackbox interface.</li>
         <li><strong>Privacy → Revoke access</strong> — disables future capture and clears the current Blackbox session.</li>
-        <li><strong>Load Response</strong> — retrieves a response body only when you explicitly request it.</li>
+        <li>Selecting a captured request retrieves its response body automatically so the response view and local debugger can use it as context.</li>
       </ul>
 
       <h2>Security</h2>
@@ -174,7 +175,8 @@
         Network traffic may contain credentials, tokens, cookies, personal data, or application secrets.
         Treat information displayed in Blackbox as sensitive and avoid sharing screenshots or other material
         that exposes confidential values. Blackbox is designed to minimize exposure by processing captured
-        traffic locally rather than sending it to a Blackbox backend.
+        traffic locally rather than sending it to a Blackbox backend. The built-in debug-summary formatter
+        also avoids copying raw headers, cookies, authorization values, and request/response bodies by default.
       </p>
 
       <h2>Children's Privacy</h2>
