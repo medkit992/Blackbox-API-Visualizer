@@ -73,7 +73,7 @@ describe("diagnoseRequest", () => {
     );
   });
 
-  it("shows the closest usable script frame as initiator evidence", () => {
+  it("shows the closest usable script frame as student-friendly initiator evidence", () => {
     const diagnosis = diagnoseRequest(
       makeRequest({
         initiator: {
@@ -96,7 +96,7 @@ describe("diagnoseRequest", () => {
       expect.arrayContaining([
         expect.objectContaining({
           key: "initiator",
-          value: "fetchUsers() · assets/app.js:142:18",
+          value: "app.js:142:18 · fetchUsers()",
         }),
       ])
     );
