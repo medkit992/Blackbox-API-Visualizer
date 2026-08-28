@@ -60,7 +60,21 @@ function renderInitiatorSource(request: NormalizedRequest): void {
 
   const source = getBestInitiatorSource(request.initiator);
   detailsInitiator.textContent = source?.label ?? "N/A";
-  detailsInitiator.title = source?.url ?? "";
+
+  if (!source) {
+    detailsInitiator.title = "";
+    return;
+  }
+
+  const titleParts: string[] = [];
+  if (source.generatedLabel) {
+    titleParts.push(`Captured location: ${source.generatedLabel}`);
+  }
+  if (source.url) {
+    titleParts.push(source.url);
+  }
+
+  detailsInitiator.title = titleParts.join("\n");
 }
 
 function analyzeSelectedRequest(): void {
