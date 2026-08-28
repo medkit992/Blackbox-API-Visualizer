@@ -72,6 +72,35 @@ describe("diagnoseRequest", () => {
       ])
     );
   });
+
+  it("shows the closest usable script frame as initiator evidence", () => {
+    const diagnosis = diagnoseRequest(
+      makeRequest({
+        initiator: {
+          type: "script",
+          stack: {
+            callFrames: [
+              {
+                functionName: "fetchUsers",
+                url: "https://example.com/assets/app.js",
+                lineNumber: 141,
+                columnNumber: 17,
+              },
+            ],
+          },
+        },
+      })
+    );
+
+    expect(diagnosis.evidence).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          key: "initiator",
+          value: "fetchUsers() · assets/app.js:142:18",
+        }),
+      ])
+    );
+  });
 });
 
 describe("extractResponseMessage", () => {
