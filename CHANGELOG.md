@@ -31,6 +31,7 @@ Blackbox is pre-1.0; minor releases may still evolve quickly while the core work
 - Generated filenames/functions are normalized for readability while exact generated locations remain available.
 - Source-correlation behavior is conservative: ambiguous matches fall back instead of being guessed.
 - Privacy/consent documentation now covers automatic selected-response retrieval, bounded provenance inspection, source resources/source maps, and same-origin source-map discovery.
+- Consent storage is versioned for the expanded v0.3.0 data-access disclosure; users who consented under the older release are prompted once to accept the updated disclosure before capture resumes.
 
 ### Fixed
 
