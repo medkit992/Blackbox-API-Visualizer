@@ -1,5 +1,6 @@
-import type { RequestAnalysis, NormalizedRequest } from "../network/types.js";
+import { formatInitiatorSource } from "../network/initiatorSource.js";
 import type { RequestDiagnosis } from "../network/diagnosticRules.js";
+import type { RequestAnalysis, NormalizedRequest } from "../network/types.js";
 
 const SENSITIVE_KEY_PATTERN = /(auth|authorization|token|secret|password|passwd|api[-_]?key|session|cookie|signature|credential|access[-_]?key)/i;
 const JWT_PATTERN = /\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g;
@@ -66,18 +67,6 @@ function sanitizeUrl(rawUrl: string): string {
   }
 }
 
-function formatInitiator(request: NormalizedRequest): string | null {
-  const initiator = request.initiator;
-  if (!initiator) return null;
-
-  const source = initiator.url ? sanitizeUrl(initiator.url) : initiator.type;
-  if (initiator.lineNumber === undefined) {
-    return source;
-  }
-
-  return `${source}:${initiator.lineNumber}`;
-}
-
 function appendList(lines: string[], heading: string, items: string[]): void {
   if (items.length === 0) return;
 
@@ -103,9 +92,9 @@ export function formatDebugSummary({
     `Response size: ${formatBytes(request.responseSize)}`,
   ];
 
-  const initiator = formatInitiator(request);
+  const initiator = formatInitiatorSource(request.initiator);
   if (initiator) {
-    lines.push(`Initiated by: ${initiator}`);
+    lines.push(`Initiated by: ${redactSecrets(initiator)}`);
   }
 
   lines.push(
