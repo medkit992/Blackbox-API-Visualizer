@@ -92,13 +92,20 @@ export function formatDebugSummary({
     `Response size: ${formatBytes(request.responseSize)}`,
   ];
 
+  const evidenceKeys = new Set(diagnosis?.evidence.map((item) => item.key) ?? []);
   const initiator = getBestInitiatorSource(request.initiator);
-  if (initiator) {
+  if (initiator && !evidenceKeys.has("browser-initiator")) {
     lines.push(`Browser initiator: ${redactSecrets(initiator.label)}`);
+  }
 
-    if (initiator.likelyBuiltAsset && initiator.generatedLabel) {
-      lines.push(`Generated browser location: ${redactSecrets(initiator.generatedLabel)}`);
-    }
+  if (
+    initiator?.likelyBuiltAsset &&
+    initiator.generatedLabel &&
+    !evidenceKeys.has("generated-location")
+  ) {
+    lines.push(
+      `Generated browser location: ${redactSecrets(initiator.generatedLabel)}`
+    );
   }
 
   lines.push(
