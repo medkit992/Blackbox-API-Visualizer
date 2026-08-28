@@ -283,9 +283,8 @@
           <section id="tab-response" class="details-content" data-tab-content="response" hidden>
             <div class="response-toolbar">
               <span id="details-response-mime"></span>
-              <button id="load-response-body" type="button">Load Response</button>
             </div>
-            <pre id="details-response-body">Select "Load Response" to retrieve the response body.</pre>
+            <pre id="details-response-body">Response body loads automatically when you select a request.</pre>
           </section>
 
           <section id="tab-headers" class="details-content" data-tab-content="headers" hidden>
@@ -328,8 +327,9 @@
           send captured traffic to Blackbox servers.
         </p>
         <p>
-          Response bodies are retrieved only when you explicitly choose <strong>Load Response</strong>.
-          You can pause capture, clear the current session, or revoke access from Privacy at any time.
+          Response bodies are retrieved automatically when you select a captured request so Blackbox
+          can populate the response view and use the body as local diagnostic context. You can pause
+          capture, clear the current session, or revoke access from Privacy at any time.
         </p>
         <a
           class="consent-dialog__link"
@@ -352,5 +352,6 @@
     <script type="module" src="./consent.ts"></script>
     <script type="module" src="./panel.ts"></script>
     <script type="module" src="./response-explorer-ui.ts"></script>
+    <script type="module" src="./request-debugger-runtime.ts"></script>
   </body>
 </html>
