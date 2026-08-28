@@ -49,3 +49,6 @@ jobs:
             echo 'ZIP unexpectedly contains a dist/ parent directory'
             exit 1
           fi
+
+      - name: Release candidate validated
+        run: echo "v0.3.0 release candidate validation complete"
