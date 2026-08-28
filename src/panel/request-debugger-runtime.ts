@@ -81,7 +81,9 @@ function renderSourceMetadata(
   }
 
   if (detailsRelationship) {
-    detailsRelationship.textContent = context?.relationship ?? "Direct request / no upstream match";
+    detailsRelationship.textContent = context
+      ? context.relationship ?? "Direct request / no upstream match"
+      : "Resolving source context…";
   }
 
   if (detailsInitiator) {
@@ -177,7 +179,7 @@ async function resolveSelectedSourceContext(request: NormalizedRequest): Promise
   }
 
   try {
-    const resources = await getSourceResources();
+    const resources = await getSourceResources(requestTimeline);
     const context = await buildRequestSourceContext({
       request,
       timeline: requestTimeline,
