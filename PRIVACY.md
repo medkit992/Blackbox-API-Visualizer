@@ -1,6 +1,6 @@
 # Blackbox API Visualizer Privacy Policy
 
-**Effective date:** August 22, 2026
+**Effective date:** August 28, 2026
 
 Blackbox API Visualizer ("Blackbox") is a Chrome DevTools extension for inspecting, analyzing, and visualizing network traffic from the web page currently being inspected.
 
@@ -23,8 +23,8 @@ When you grant network access and use Blackbox on an inspected page, the extensi
 - cookies and authentication-related values that may appear in network requests or responses;
 - request bodies and submitted payloads;
 - response status information, MIME types, redirects, and size metadata;
-- network timing, resource type, cache information, initiator information, connection information, and server IP addresses;
-- response bodies when you explicitly select **Load Response** for a captured request.
+- network timing, resource type, cache information, initiator information, connection information, and server IP addresses; and
+- response bodies for captured requests that you select in the request inspector.
 
 Depending on the website being inspected, this information may contain personal information, authentication tokens, session identifiers, or other sensitive content. Blackbox displays this information because inspecting the actual network exchange is the core function of the extension.
 
@@ -35,9 +35,10 @@ Blackbox uses captured network information only to provide its user-facing devel
 - the request list and request inspector;
 - request and response metadata views;
 - timing and performance information;
-- request-level diagnostics;
+- request-level diagnostics and diagnostic context;
 - duplicate-request, polling, endpoint, domain, and error analysis;
-- session insights; and
+- session insights;
+- copied debug summaries that intentionally omit raw headers, cookies, authorization values, and request/response bodies; and
 - the interactive network graph.
 
 Blackbox does not use captured traffic for advertising, behavioral profiling, marketing, eligibility decisions, or any purpose unrelated to the extension's network-inspection functionality.
@@ -52,14 +53,14 @@ The extension analyzes the information locally in the DevTools extension context
 
 ## Storage and Retention
 
-Captured request and session data is kept in memory for the active DevTools session so Blackbox can render the request table, details, insights, and graph.
+Captured request and session data is kept in memory for the active DevTools session so Blackbox can render the request table, details, insights, diagnostics, and graph.
 
 In the current version:
 
 - choosing **Clear** removes the current captured session from Blackbox;
 - navigating the inspected page resets the current captured session;
 - closing the DevTools panel ends the in-memory session; and
-- response bodies are retrieved only after you explicitly select **Load Response** for a request.
+- response bodies are retrieved automatically when you select a captured request and are kept only in the active in-memory session.
 
 Blackbox stores a small local preference indicating whether you granted network-capture consent. This preference contains no captured network traffic. You can remove it by choosing **Privacy → Revoke access**, by clearing the extension's local data, or by uninstalling the extension.
 
@@ -72,13 +73,13 @@ Blackbox provides the following controls:
 - **Pause / Resume** — temporarily stops or resumes capture after consent has been granted.
 - **Clear** — removes the current captured session from the Blackbox interface.
 - **Privacy → Revoke access** — disables future capture and clears the current Blackbox session.
-- **Load Response** — retrieves a response body only when you explicitly request it.
+- Selecting a captured request retrieves its response body automatically so the response view and local debugger can use it as context.
 
 ## Security
 
 Because network traffic may contain credentials, tokens, cookies, personal data, or application secrets, you should treat information displayed in Blackbox as sensitive and avoid sharing screenshots or exports that expose confidential values.
 
-Blackbox is designed to minimize exposure by processing captured traffic locally rather than sending it to a Blackbox backend.
+Blackbox is designed to minimize exposure by processing captured traffic locally rather than sending it to a Blackbox backend. The built-in debug-summary formatter also avoids copying raw headers, cookies, authorization values, and request/response bodies by default.
 
 ## Children's Privacy
 
