@@ -14,7 +14,7 @@ export interface RequestData {
   _initiator?: Initiator;
   _priority?: ResourcePriority;
 
-  getContent(): string | null;
+  getContent(callback: (content: string, encoding: string) => void): void;
 }
 
 interface Timings {
@@ -70,13 +70,14 @@ interface Content {
   encoding: string | undefined;
 }
 
-interface Initiator {
+export interface Initiator {
   type: InitiatorType;
 
   url?: string;
   lineNumber?: number;
 
-  // Chromium can also provide script stack information here.
+  // Preserve Chromium's complete initiator stack as-is. A later source-correlation
+  // layer can interpret/map these frames without throwing away capture data now.
   stack?: unknown;
 }
 
@@ -188,6 +189,9 @@ export interface NormalizedRequest {
   // Response data
   responseHeaders: Header[];
   redirectUrl?: string;
+  responseBody?: string;
+  responseBodyEncoding?: string;
+  responseBodyLoaded: boolean;
 
   // Performance
   timings: NormalizedTimings;
@@ -218,7 +222,7 @@ export interface RequestIssue {
   message: string;
 }
 
-type RequestIssueType =
+export type RequestIssueType =
   | "auth-error" // 401 / 403
   | "not-found" // 404
   | "rate-limited" // 429

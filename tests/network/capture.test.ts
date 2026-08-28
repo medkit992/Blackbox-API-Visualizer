@@ -17,14 +17,16 @@ function makeRequest(
 describe("network capture", () => {
   let finishedListener: ((request: chrome.devtools.network.Request) => void) | undefined;
   let harEntries: chrome.devtools.network.Request[];
+  let storageGetItem: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.resetModules();
     harEntries = [];
     finishedListener = undefined;
+    storageGetItem = vi.fn(() => null);
 
     vi.stubGlobal("localStorage", {
-      getItem: vi.fn(() => null),
+      getItem: storageGetItem,
       setItem: vi.fn(),
       removeItem: vi.fn(),
     });
@@ -59,6 +61,34 @@ describe("network capture", () => {
 
     finishedListener?.(request);
 
+    expect(capture.default).toHaveLength(0);
+  });
+
+  it("honors consent saved under the current v0.3.0 disclosure", async () => {
+    storageGetItem.mockImplementation((key: string) =>
+      key === "blackbox-network-consent-v2" ? "granted" : null
+    );
+
+    const capture = await import("../../src/network/capture.js");
+    const request = makeRequest();
+
+    finishedListener?.(request);
+
+    expect(storageGetItem).toHaveBeenCalledWith("blackbox-network-consent-v2");
+    expect(capture.default).toEqual([request]);
+  });
+
+  it("does not silently reuse consent from the older disclosure", async () => {
+    storageGetItem.mockImplementation((key: string) =>
+      key === "blackbox-network-consent-v1" ? "granted" : null
+    );
+
+    const capture = await import("../../src/network/capture.js");
+    const request = makeRequest();
+
+    finishedListener?.(request);
+
+    expect(storageGetItem).toHaveBeenCalledWith("blackbox-network-consent-v2");
     expect(capture.default).toHaveLength(0);
   });
 

@@ -1,7 +1,14 @@
 const requests: chrome.devtools.network.Request[] = [];
 export const requestsUpdated = new EventTarget();
 
-export const NETWORK_CONSENT_STORAGE_KEY = "blackbox-network-consent-v1";
+/**
+ * Consent storage is intentionally versioned. v0.3.0 expands local analysis to
+ * automatic selected-response retrieval plus bounded provenance/source-map
+ * context, so consent granted under the older disclosure must not silently carry
+ * forward to this release.
+ */
+export const NETWORK_CONSENT_STORAGE_KEY = "blackbox-network-consent-v2";
+export const LEGACY_NETWORK_CONSENT_STORAGE_KEY = "blackbox-network-consent-v1";
 
 type HarEntry = chrome.devtools.network.HARLog["entries"][number];
 
@@ -73,7 +80,7 @@ function appendRequest(
   return true;
 }
 
-// Capture is disabled until the user has explicitly granted access.
+// Capture is disabled until the user has explicitly granted the current consent version.
 let isCaptureEnabled = readInitialCaptureConsent();
 
 // True network blocking would require the "debugger" permission, so pausing just stops capture.

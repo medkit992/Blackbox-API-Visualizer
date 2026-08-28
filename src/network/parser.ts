@@ -38,6 +38,13 @@ function normalizeInitiator(initiator: chrome.devtools.network.Request["_initiat
     return undefined;
   }
 
+  const rawInitiator = initiator as {
+    type?: string;
+    url?: string;
+    lineNumber?: number | null;
+    stack?: unknown;
+  };
+
   const initiatorTypes: InitiatorType[] = [
     "parser",
     "script",
@@ -47,16 +54,17 @@ function normalizeInitiator(initiator: chrome.devtools.network.Request["_initiat
     "FedCM",
     "other",
   ];
-  const type = initiatorTypes.includes(initiator.type as InitiatorType)
-    ? initiator.type as InitiatorType
+  const type = initiatorTypes.includes(rawInitiator.type as InitiatorType)
+    ? rawInitiator.type as InitiatorType
     : "other";
 
   return {
     type,
-    ...(initiator.url ? { url: initiator.url } : {}),
-    ...(initiator.lineNumber !== null && initiator.lineNumber !== undefined
-      ? { lineNumber: initiator.lineNumber }
+    ...(rawInitiator.url ? { url: rawInitiator.url } : {}),
+    ...(rawInitiator.lineNumber !== null && rawInitiator.lineNumber !== undefined
+      ? { lineNumber: rawInitiator.lineNumber }
       : {}),
+    ...(rawInitiator.stack !== undefined ? { stack: rawInitiator.stack } : {}),
   };
 }
 
@@ -121,11 +129,18 @@ export default function parseRequest(request: chrome.devtools.network.Request): 
     _resourceType: normalizeResourceType(request._resourceType),
     _initiator: normalizeInitiator(request._initiator),
     _priority: normalizePriority(request._priority),
-    getContent(): string | null {
-        if (request.response.content.text) {
-            return request.response.content.text;
-        }
-        return null;
+    getContent(callback): void {
+      if (typeof request.getContent === "function") {
+        request.getContent((content, encoding) => {
+          callback(content ?? "", encoding ?? "");
+        });
+        return;
+      }
+
+      callback(
+        request.response.content.text ?? "",
+        request.response.content.encoding ?? ""
+      );
     }
     };
 
@@ -180,6 +195,7 @@ export function normalizeRequest(requestData: RequestData): NormalizedRequest {
       : Math.max(requestData.response.content.size, 0);
   const requestHeadersSize = Math.max(requestData.request.headersSize, 0);
   const responseHeadersSize = Math.max(requestData.response.headersSize, 0);
+  const hasInlineResponseBody = requestData.response.content.text !== undefined;
 
   return {
     id: crypto.randomUUID(),
@@ -208,6 +224,9 @@ export function normalizeRequest(requestData: RequestData): NormalizedRequest {
 
     responseHeaders: requestData.response.headers,
     redirectUrl: requestData.response.redirectURL || undefined,
+    responseBody: requestData.response.content.text,
+    responseBodyEncoding: requestData.response.content.encoding,
+    responseBodyLoaded: hasInlineResponseBody,
 
     timings: normalizeTimings(requestData.timings),
 

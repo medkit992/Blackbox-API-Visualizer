@@ -90,6 +90,16 @@ function makeChromeRequest(): chrome.devtools.network.Request {
       type: "script",
       url: "https://example.com/app.js",
       lineNumber: 42,
+      stack: {
+        callFrames: [
+          {
+            functionName: "loadUsers",
+            url: "https://example.com/app.js",
+            lineNumber: 42,
+            columnNumber: 7,
+          },
+        ],
+      },
     },
 
     _priority: "High",
@@ -97,7 +107,7 @@ function makeChromeRequest(): chrome.devtools.network.Request {
 }
 
 describe("parseRequest", () => {
-  it("converts a Chrome request into RequestData", () => {
+  it("converts a Chrome request into RequestData and preserves initiator context", () => {
     const parsed = parseRequest(makeChromeRequest());
 
     expect(parsed.request.method).toBe("POST");
@@ -114,7 +124,28 @@ describe("parseRequest", () => {
       type: "script",
       url: "https://example.com/app.js",
       lineNumber: 42,
+      stack: {
+        callFrames: [
+          {
+            functionName: "loadUsers",
+            url: "https://example.com/app.js",
+            lineNumber: 42,
+            columnNumber: 7,
+          },
+        ],
+      },
     });
+  });
+
+  it("preserves a response-content loader for later debugger context", () => {
+    const parsed = parseRequest(makeChromeRequest());
+    let loadedContent = "";
+
+    parsed.getContent((content) => {
+      loadedContent = content;
+    });
+
+    expect(loadedContent).toBe('{"success":true}');
   });
 });
 
@@ -144,6 +175,9 @@ describe("normalizeRequest", () => {
         value: "2",
       },
     ]);
+
+    expect(normalized.responseBody).toBe('{"success":true}');
+    expect(normalized.responseBodyLoaded).toBe(true);
   });
 
   it("falls back to content size when response body size is unknown", () => {

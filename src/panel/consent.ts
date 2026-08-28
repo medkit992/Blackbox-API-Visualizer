@@ -1,5 +1,6 @@
 import {
   backfillCapturedRequests,
+  LEGACY_NETWORK_CONSENT_STORAGE_KEY,
   NETWORK_CONSENT_STORAGE_KEY,
   setCaptureEnabled,
   setCapturePaused,
@@ -29,8 +30,19 @@ function hasConsent(): boolean {
   }
 }
 
+function removeLegacyConsent(): void {
+  try {
+    localStorage.removeItem(LEGACY_NETWORK_CONSENT_STORAGE_KEY);
+  } catch {
+    // Storage may be unavailable; current consent remains session-only in that case.
+  }
+}
+
 function persistConsent(granted: boolean): void {
   try {
+    // Always clear consent saved under the older, narrower disclosure.
+    localStorage.removeItem(LEGACY_NETWORK_CONSENT_STORAGE_KEY);
+
     if (granted) {
       localStorage.setItem(NETWORK_CONSENT_STORAGE_KEY, "granted");
     } else {
@@ -88,6 +100,10 @@ function backfillExistingTraffic(): void {
     console.error("Blackbox failed to backfill the DevTools network log.", error);
   });
 }
+
+// v0.3.0 expands local response/source analysis. Remove the prior-version flag
+// before evaluating current consent so existing users see the updated disclosure once.
+removeLegacyConsent();
 
 const initialConsent = hasConsent();
 setCaptureEnabled(initialConsent);
