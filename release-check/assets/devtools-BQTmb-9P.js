@@ -1,1 +1,0 @@
-import"./modulepreload-polyfill-P2Xu9kJm.js";chrome.devtools.panels.create(`Blackbox`,``,`src/panel/panel.html`);
