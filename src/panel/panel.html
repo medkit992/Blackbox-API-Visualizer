@@ -3,358 +3,89 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
     <title>Blackbox API Visualizer</title>
-
     <link rel="stylesheet" href="./panel.css" />
     <link rel="stylesheet" href="./graph.css" />
     <link rel="stylesheet" href="./consent.css" />
     <link rel="stylesheet" href="./response-explorer.css" />
     <link rel="stylesheet" href="./request-debugger.css" />
+    <link rel="stylesheet" href="./request-stories.css" />
   </head>
-
   <body>
     <div class="app">
       <header class="topbar">
-        <div class="topbar__brand">
-          <h1>Blackbox</h1>
-          <span id="recording-status" class="recording-status">Recording</span>
-        </div>
-
-        <div class="topbar__actions">
-          <button id="privacy-settings" type="button">Privacy</button>
-          <button id="toggle-recording" type="button">Pause</button>
-          <button id="clear-requests" type="button">Clear</button>
-        </div>
+        <div class="topbar__brand"><h1>Blackbox</h1><span id="recording-status" class="recording-status">Recording</span></div>
+        <div class="topbar__actions"><button id="privacy-settings" type="button">Privacy</button><button id="toggle-recording" type="button">Pause</button><button id="clear-requests" type="button">Clear</button></div>
       </header>
-
       <section class="toolbar">
         <div class="toolbar__filters" id="request-filters">
-          <button type="button" data-category="All" class="active">All</button>
-          <button type="button" data-category="Fetch">Fetch</button>
-          <button type="button" data-category="XHR">XHR</button>
-          <button type="button" data-category="Document">Documents</button>
-          <button type="button" data-category="Script">JS</button>
-          <button type="button" data-category="Stylesheet">CSS</button>
-          <button type="button" data-category="Image">Images</button>
-          <button type="button" data-category="WebSocket">WS</button>
-          <button type="button" data-category="Errors">Errors</button>
+          <button type="button" data-category="All" class="active">All</button><button type="button" data-category="Fetch">Fetch</button><button type="button" data-category="XHR">XHR</button><button type="button" data-category="Document">Documents</button><button type="button" data-category="Script">JS</button><button type="button" data-category="Stylesheet">CSS</button><button type="button" data-category="Image">Images</button><button type="button" data-category="WebSocket">WS</button><button type="button" data-category="Errors">Errors</button>
         </div>
-
-        <div class="toolbar__search">
-          <input
-            id="request-search"
-            type="search"
-            placeholder="Search requests..."
-            autocomplete="off"
-          />
-        </div>
+        <div class="toolbar__search"><input id="request-search" type="search" placeholder="Search requests..." autocomplete="off" /></div>
       </section>
-
-      <section class="summary-bar">
-        <span><strong id="request-count">0</strong> requests</span>
-        <span><strong id="transferred-size">0 B</strong> transferred</span>
-        <span><strong id="total-duration">0 ms</strong> total</span>
-      </section>
-
+      <section class="summary-bar"><span><strong id="request-count">0</strong> requests</span><span><strong id="transferred-size">0 B</strong> transferred</span><span><strong id="total-duration">0 ms</strong> total</span></section>
       <section id="session-insights" class="session-insights">
-        <header class="session-insights__header">
-          <h2>Session Insights</h2>
-          <button
-            id="toggle-session-insights"
-            type="button"
-            class="session-insights__toggle"
-            aria-expanded="true"
-          >
-            Hide
-          </button>
-        </header>
-
+        <header class="session-insights__header"><h2>Session Insights</h2><button id="toggle-session-insights" type="button" class="session-insights__toggle" aria-expanded="true">Hide</button></header>
         <div id="session-insights-body" class="session-insights__body">
-          <div class="session-insights__column">
-            <h3>Issues</h3>
-            <div id="session-issues-list" class="session-issues-list">
-              <p class="session-insights__empty">No issues detected.</p>
-            </div>
-          </div>
-
-          <div class="session-insights__column">
-            <h3>Top Endpoints</h3>
-            <div id="session-endpoints-list" class="session-endpoints-list"></div>
-          </div>
-
-          <div class="session-insights__column">
-            <h3>Domains</h3>
-            <div id="session-domains-list" class="session-domains-list"></div>
-          </div>
+          <div class="session-insights__column"><h3>Issues</h3><div id="session-issues-list" class="session-issues-list"><p class="session-insights__empty">No issues detected.</p></div></div>
+          <div class="session-insights__column"><h3>Top Endpoints</h3><div id="session-endpoints-list" class="session-endpoints-list"></div></div>
+          <div class="session-insights__column"><h3>Domains</h3><div id="session-domains-list" class="session-domains-list"></div></div>
         </div>
       </section>
-
       <section class="view-switch-bar">
-        <div class="view-switch" id="view-switch">
-          <button type="button" data-view="requests" class="active">Requests</button>
-          <button type="button" data-view="graph">Graph</button>
-        </div>
-
-        <div class="graph-toolbar" id="graph-toolbar" hidden>
-          <span id="graph-status" class="graph-toolbar__status" aria-live="polite"></span>
-
-          <label class="graph-toolbar__limit">
-            <span>Endpoints/domain</span>
-            <select id="graph-endpoint-limit" aria-label="Maximum endpoints shown per domain">
-              <option value="10">10</option>
-              <option value="25" selected>25</option>
-              <option value="50">50</option>
-            </select>
-          </label>
-
-          <button id="graph-errors-only" type="button">Errors only</button>
-          <button id="graph-collapse-all" type="button">Collapse all</button>
-          <button id="graph-fit" type="button">Fit</button>
+        <div class="view-switch" id="view-switch" role="group" aria-label="Network view">
+          <button type="button" data-view="requests" class="active" aria-pressed="true">Requests</button>
+          <button type="button" data-view="graph" aria-pressed="false">Request stories</button>
         </div>
       </section>
-
       <main class="workspace">
         <section id="request-panel" class="request-panel">
-          <div id="session-filter-banner" class="session-filter-banner" hidden>
-            <span id="session-filter-banner-text"></span>
-            <button id="session-filter-clear" type="button">Clear</button>
-          </div>
-
-          <div class="request-table-wrapper">
-            <table class="request-table">
-              <thead>
-                <tr>
-                  <th>Method</th>
-                  <th>Request</th>
-                  <th>Status</th>
-                  <th>Type</th>
-                  <th>Size</th>
-                  <th>Time</th>
-                </tr>
-              </thead>
-              <tbody id="request-list"></tbody>
-            </table>
-          </div>
-
-          <div id="request-empty-state" class="empty-state">
-            <h2>No requests captured yet</h2>
-            <p>Network requests from the inspected page will appear here.</p>
-          </div>
+          <div id="session-filter-banner" class="session-filter-banner" hidden><span id="session-filter-banner-text"></span><button id="session-filter-clear" type="button">Clear</button></div>
+          <div class="request-table-wrapper"><table class="request-table"><thead><tr><th>Method</th><th>Request</th><th>Status</th><th>Type</th><th>Size</th><th>Time</th></tr></thead><tbody id="request-list"></tbody></table></div>
+          <div id="request-empty-state" class="empty-state"><h2>No requests captured yet</h2><p>Network requests from the inspected page will appear here.</p></div>
         </section>
-
-        <section id="graph-panel" class="graph-panel" hidden>
-          <div id="network-graph" class="network-graph"></div>
-
-          <div id="graph-empty-state" class="empty-state">
-            <h2>No requests captured yet</h2>
-            <p>Network requests from the inspected page will appear here.</p>
-          </div>
-        </section>
-
+        <section id="graph-panel" class="graph-panel" hidden aria-label="Request stories"><div id="request-stories"></div></section>
         <aside id="request-details" class="details-panel" hidden>
           <header class="details-header">
-            <div>
-              <div class="details-header__request">
-                <span id="details-method"></span>
-                <span id="details-path"></span>
-              </div>
-              <div class="details-header__status">
-                <span id="details-status"></span>
-                <span id="details-status-text"></span>
-              </div>
-            </div>
-
+            <div><div class="details-header__request"><span id="details-method"></span><span id="details-path"></span></div><div class="details-header__status"><span id="details-status"></span><span id="details-status-text"></span></div></div>
             <button id="close-details" type="button" aria-label="Close request details">×</button>
           </header>
-
-          <nav class="details-tabs" aria-label="Request details">
-            <button type="button" data-tab="overview" class="active">Overview</button>
-            <button type="button" data-tab="request">Request</button>
-            <button type="button" data-tab="response">Response</button>
-            <button type="button" data-tab="headers">Headers</button>
-            <button type="button" data-tab="timing">Timing</button>
-          </nav>
-
+          <nav class="details-tabs" aria-label="Request details"><button type="button" data-tab="overview" class="active">Overview</button><button type="button" data-tab="request">Request</button><button type="button" data-tab="response">Response</button><button type="button" data-tab="headers">Headers</button><button type="button" data-tab="timing">Timing</button></nav>
           <section id="tab-overview" class="details-content" data-tab-content="overview">
-            <section
-              id="request-diagnosis"
-              class="request-diagnosis request-diagnosis--idle"
-              aria-labelledby="request-diagnosis-title"
-              data-diagnosis-state="idle"
-            >
-              <header class="request-diagnosis__header">
-                <div>
-                  <p class="request-diagnosis__eyebrow">Debugger</p>
-                  <h2 id="request-diagnosis-title">Request Diagnosis</h2>
-                </div>
-                <div class="request-diagnosis__badges">
-                  <span id="diagnosis-severity" class="diagnosis-badge">Not analyzed</span>
-                  <span id="diagnosis-confidence" class="diagnosis-confidence" hidden></span>
-                </div>
-              </header>
-
-              <div class="request-diagnosis__summary">
-                <h3 id="diagnosis-title">Ready for diagnostic analysis</h3>
-                <p id="diagnosis-summary">
-                  The 0.3.0 diagnostic analyzer will use this area to explain what happened,
-                  why it likely happened, and what to check next.
-                </p>
-              </div>
-
-              <div id="diagnosis-meta" class="diagnosis-meta" hidden>
-                <span>Category: <strong id="diagnosis-category"></strong></span>
-                <span>Confidence: <strong id="diagnosis-confidence-text"></strong></span>
-              </div>
-
+            <section id="request-diagnosis" class="request-diagnosis request-diagnosis--idle" aria-labelledby="request-diagnosis-title" data-diagnosis-state="idle">
+              <header class="request-diagnosis__header"><div><p class="request-diagnosis__eyebrow">Debugger</p><h2 id="request-diagnosis-title">Request Diagnosis</h2></div><div class="request-diagnosis__badges"><span id="diagnosis-severity" class="diagnosis-badge">Not analyzed</span><span id="diagnosis-confidence" class="diagnosis-confidence" hidden></span></div></header>
+              <div class="request-diagnosis__summary"><h3 id="diagnosis-title">Ready for diagnostic analysis</h3><p id="diagnosis-summary">Select a captured request to inspect its result, evidence, and debugging suggestions.</p></div>
+              <div id="diagnosis-meta" class="diagnosis-meta" hidden><span>Category: <strong id="diagnosis-category"></strong></span><span>Confidence: <strong id="diagnosis-confidence-text"></strong></span></div>
               <div class="diagnosis-columns">
-                <section class="diagnosis-section">
-                  <h3>Evidence</h3>
-                  <div id="diagnosis-evidence" class="diagnosis-list diagnosis-list--empty">
-                    <p>Signals and request facts will appear here.</p>
-                  </div>
-                </section>
-
-                <section class="diagnosis-section">
-                  <h3>Likely Causes</h3>
-                  <div id="diagnosis-causes" class="diagnosis-list diagnosis-list--empty">
-                    <p>Possible causes will appear here.</p>
-                  </div>
-                </section>
-
-                <section class="diagnosis-section">
-                  <h3>Things to Check</h3>
-                  <div id="diagnosis-suggestions" class="diagnosis-list diagnosis-list--empty">
-                    <p>Recommended debugging steps will appear here.</p>
-                  </div>
-                </section>
+                <section class="diagnosis-section"><h3>Evidence</h3><div id="diagnosis-evidence" class="diagnosis-list diagnosis-list--empty"><p>Signals and request facts will appear here.</p></div></section>
+                <section class="diagnosis-section"><h3>Likely Causes</h3><div id="diagnosis-causes" class="diagnosis-list diagnosis-list--empty"><p>Possible causes will appear here.</p></div></section>
+                <section class="diagnosis-section"><h3>Things to Check</h3><div id="diagnosis-suggestions" class="diagnosis-list diagnosis-list--empty"><p>Recommended debugging steps will appear here.</p></div></section>
               </div>
-
-              <footer class="request-diagnosis__footer">
-                <span id="diagnosis-status" class="diagnosis-status" aria-live="polite">
-                  Analyzer not connected yet
-                </span>
-                <button id="copy-debug-summary" type="button" disabled>Copy Debug Summary</button>
-              </footer>
+              <footer class="request-diagnosis__footer"><span id="diagnosis-status" class="diagnosis-status" aria-live="polite">Select a request to begin</span><button id="copy-debug-summary" type="button" disabled>Copy Debug Summary</button></footer>
             </section>
-
-            <section class="overview-section" aria-labelledby="detected-signals-title">
-              <div class="overview-section__header">
-                <div>
-                  <p class="overview-section__eyebrow">Existing analyzer</p>
-                  <h2 id="detected-signals-title">Detected Signals</h2>
-                </div>
-              </div>
-              <div id="details-insights" class="insights-list"></div>
-            </section>
-
+            <section class="overview-section" aria-labelledby="detected-signals-title"><div class="overview-section__header"><div><p class="overview-section__eyebrow">Existing analyzer</p><h2 id="detected-signals-title">Detected Signals</h2></div></div><div id="details-insights" class="insights-list"></div></section>
             <section class="overview-section" aria-labelledby="request-metadata-title">
-              <div class="overview-section__header">
-                <div>
-                  <p class="overview-section__eyebrow">Request facts</p>
-                  <h2 id="request-metadata-title">Metadata</h2>
-                </div>
-              </div>
-
-              <dl class="details-grid">
-                <div><dt>URL</dt><dd id="details-url"></dd></div>
-                <div><dt>Host</dt><dd id="details-host"></dd></div>
-                <div><dt>Type</dt><dd id="details-type"></dd></div>
-                <div><dt>Duration</dt><dd id="details-duration"></dd></div>
-                <div><dt>Response Size</dt><dd id="details-response-size"></dd></div>
-                <div><dt>Priority</dt><dd id="details-priority"></dd></div>
-                <div><dt>Source</dt><dd id="details-source">N/A</dd></div>
-                <div><dt>Relationship</dt><dd id="details-relationship">N/A</dd></div>
-                <div><dt>Browser Initiator</dt><dd id="details-initiator"></dd></div>
-                <div><dt>Server IP</dt><dd id="details-server-ip"></dd></div>
-              </dl>
+              <div class="overview-section__header"><div><p class="overview-section__eyebrow">Request facts</p><h2 id="request-metadata-title">Metadata</h2></div></div>
+              <dl class="details-grid"><div><dt>URL</dt><dd id="details-url"></dd></div><div><dt>Host</dt><dd id="details-host"></dd></div><div><dt>Type</dt><dd id="details-type"></dd></div><div><dt>Duration</dt><dd id="details-duration"></dd></div><div><dt>Response Size</dt><dd id="details-response-size"></dd></div><div><dt>Priority</dt><dd id="details-priority"></dd></div><div><dt>Source</dt><dd id="details-source">N/A</dd></div><div><dt>Relationship</dt><dd id="details-relationship">N/A</dd></div><div><dt>Browser Initiator</dt><dd id="details-initiator"></dd></div><div><dt>Server IP</dt><dd id="details-server-ip"></dd></div></dl>
             </section>
           </section>
-
-          <section id="tab-request" class="details-content" data-tab-content="request" hidden>
-            <section class="details-section">
-              <h3>Query Parameters</h3>
-              <div id="details-query"></div>
-            </section>
-            <section class="details-section">
-              <h3>Request Body</h3>
-              <pre id="details-request-body"></pre>
-            </section>
-          </section>
-
-          <section id="tab-response" class="details-content" data-tab-content="response" hidden>
-            <div class="response-toolbar">
-              <span id="details-response-mime"></span>
-            </div>
-            <pre id="details-response-body">Response body loads automatically when you select a request.</pre>
-          </section>
-
-          <section id="tab-headers" class="details-content" data-tab-content="headers" hidden>
-            <section class="details-section">
-              <h3>Request Headers</h3>
-              <div id="details-request-headers"></div>
-            </section>
-            <section class="details-section">
-              <h3>Response Headers</h3>
-              <div id="details-response-headers"></div>
-            </section>
-          </section>
-
-          <section id="tab-timing" class="details-content" data-tab-content="timing" hidden>
-            <div id="details-timings" class="timing-list"></div>
-          </section>
+          <section id="tab-request" class="details-content" data-tab-content="request" hidden><section class="details-section"><h3>Query Parameters</h3><div id="details-query"></div></section><section class="details-section"><h3>Request Body</h3><pre id="details-request-body"></pre></section></section>
+          <section id="tab-response" class="details-content" data-tab-content="response" hidden><div class="response-toolbar"><span id="details-response-mime"></span></div><pre id="details-response-body">Response body loads automatically when you select a request.</pre></section>
+          <section id="tab-headers" class="details-content" data-tab-content="headers" hidden><section class="details-section"><h3>Request Headers</h3><div id="details-request-headers"></div></section><section class="details-section"><h3>Response Headers</h3><div id="details-response-headers"></div></section></section>
+          <section id="tab-timing" class="details-content" data-tab-content="timing" hidden><div id="details-timings" class="timing-list"></div></section>
         </aside>
       </main>
     </div>
-
-    <div
-      id="network-consent"
-      class="consent-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="consent-title"
-      hidden
-    >
+    <div id="network-consent" class="consent-overlay" role="dialog" aria-modal="true" aria-labelledby="consent-title" hidden>
       <section class="consent-dialog">
-        <p class="consent-dialog__eyebrow">Privacy & data access</p>
-        <h2 id="consent-title">Allow Blackbox to read network traffic?</h2>
-        <p>
-          Blackbox reads network data from the page currently inspected in DevTools so it can
-          build the request table, diagnostics, session insights, and network graph.
-        </p>
-        <p class="consent-dialog__notice">
-          This data may include <strong>URLs, headers, cookies or authentication values,
-          query parameters, request bodies, response data, source resources, and timing metadata</strong>.
-          Blackbox processes this information locally in the DevTools extension and does not
-          send captured traffic to Blackbox servers.
-        </p>
-        <p>
-          Response bodies are retrieved automatically when you select a captured request. When
-          tracing where a resource came from, Blackbox may also inspect a bounded set of recent
-          successful Fetch/XHR responses and source resources exposed by DevTools to find exact
-          URL relationships and authored source locations. If a generated same-origin script has
-          a conventional sibling source-map file, Blackbox may request that map locally from the
-          inspected site to resolve the original source file. This context stays local. You can
-          pause capture, clear the current session, or revoke access from Privacy at any time.
-        </p>
-        <a
-          class="consent-dialog__link"
-          href="https://medkit992.github.io/Blackbox-API-Visualizer/"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Read the privacy policy
-        </a>
-
-        <div class="consent-dialog__actions">
-          <button id="consent-revoke" type="button" hidden>Revoke access</button>
-          <button id="consent-close" type="button" hidden>Close</button>
-          <button id="consent-decline" type="button">Not now</button>
-          <button id="consent-accept" type="button">Start capturing</button>
-        </div>
+        <p class="consent-dialog__eyebrow">Privacy &amp; data access</p><h2 id="consent-title">Allow Blackbox to read network traffic?</h2>
+        <p>Blackbox reads network data from the page currently inspected in DevTools so it can build the request table, diagnostics, session insights, and network graph.</p>
+        <p class="consent-dialog__notice">This data may include <strong>URLs, headers, cookies or authentication values, query parameters, request bodies, response data, source resources, and timing metadata</strong>. Blackbox processes this information locally in the DevTools extension and does not send captured traffic to Blackbox servers.</p>
+        <p>Response bodies are retrieved automatically when you select a captured request. When tracing where a resource came from, Blackbox may also inspect a bounded set of recent successful Fetch/XHR responses and source resources exposed by DevTools to find exact URL relationships and authored source locations. If a generated same-origin script has a conventional sibling source-map file, Blackbox may request that map locally from the inspected site to resolve the original source file. This context stays local. You can pause capture, clear the current session, or revoke access from Privacy at any time.</p>
+        <a class="consent-dialog__link" href="https://medkit992.github.io/Blackbox-API-Visualizer/" target="_blank" rel="noreferrer">Read the privacy policy</a>
+        <div class="consent-dialog__actions"><button id="consent-revoke" type="button" hidden>Revoke access</button><button id="consent-close" type="button" hidden>Close</button><button id="consent-decline" type="button">Not now</button><button id="consent-accept" type="button">Start capturing</button></div>
       </section>
     </div>
-
     <script type="module" src="./consent.ts"></script>
     <script type="module" src="./panel.ts"></script>
     <script type="module" src="./response-explorer-ui.ts"></script>
