@@ -42,7 +42,7 @@ npm run build
 
 Then manually verify the extension loads and the Blackbox DevTools panel opens without critical console errors.
 
-For changes involving request diagnosis, source correlation, provenance, response loading, or privacy behavior, also test at least one normal development build and one production/minified page when practical.
+For changes involving request diagnosis, source correlation, provenance, response loading, Request Stories, or privacy behavior, also test at least one normal development build and one production/minified page when practical.
 
 ## Project boundaries
 
@@ -59,10 +59,13 @@ Keep responsibilities separated:
 - Webpack development-module correlation belongs in `src/network/webpackModuleResolver.ts`;
 - combined request/source context belongs in `src/network/requestSourceContext.ts`;
 - cross-request/session rules belong in `src/network/sessionAnalyzer.ts`;
-- complete graph construction belongs in `src/network/graphBuilder.ts`;
-- graph visibility/scalability rules belong in `src/network/graphView.ts`;
-- DevTools resource adapters, runtime coordination, DOM, and Cytoscape interaction belong in `src/panel/`;
+- renderer-independent Request Stories grouping/explanation/evidence belongs in `src/network/requestStory.ts`;
+- Request Stories controller/DOM behavior belongs in `src/panel/request-stories.ts`;
+- Request Stories visual/responsive rules belong in `src/panel/request-stories.css` and `src/panel/request-stories-layout.css`;
+- general DevTools request/session coordination belongs in `src/panel/panel.ts`;
 - share/copy formatting belongs in focused helpers such as `src/utils/debugSummary.ts`.
+
+`src/network/graphBuilder.ts`, `src/network/graphView.ts`, their tests/types, and Cytoscape are legacy from the pre-v0.4 graph UI. The active panel no longer uses them; do not extend those files for new Request Stories behavior.
 
 Avoid putting raw HAR/Chromium access or diagnostic decisions deep in UI rendering code when the value can be normalized/interpreted earlier.
 
@@ -103,23 +106,42 @@ Source correlation is allowed to fail. It is **not** allowed to invent an author
 - Keep traversal/candidate counts/response sizes bounded so analysis remains safe on large sessions.
 - New remote source/resource access requires privacy/security review and should use the narrowest possible scope.
 
-## Graph contributions
+## Request Stories contributions
 
-The graph must remain useful on large sessions.
+Request Stories should help answer a debugging question, not recreate a generic network visualization.
 
-When changing graph behavior, test at least these cases manually:
+When changing Request Stories, preserve these principles:
 
-1. a small page with fewer than 20 requests;
-2. a typical app with hundreds of captured requests;
-3. a domain with many distinct endpoints;
-4. errors-only mode;
-5. expanding and collapsing several domains;
-6. changing the endpoint-per-domain limit;
-7. resizing DevTools repeatedly;
-8. opening/closing the request inspector while the graph is visible;
-9. continuing to capture traffic while zoomed or panned away from the default viewport.
+- start from symptoms or a selected request rather than a giant dependency map;
+- keep the **Your code → HTTP exchange → Returned data** distinction technically accurate;
+- do not present HTTP success as proof that later application parsing/rendering succeeded;
+- do not infer causation from timing proximity alone;
+- label preflight/redirect/initiator relationships according to the evidence actually available;
+- only inspect response bodies already loaded by the normal debugger workflow unless a future privacy-reviewed feature explicitly changes that contract;
+- keep the selected story stable while live capture continues;
+- retain native DOM hit targets and native scrolling; do not reintroduce a transformed canvas unless a concrete user problem requires it;
+- keep analysis and rendering bounded for long sessions;
+- keep request-controlled strings escaped/sanitized;
+- make important actions keyboard reachable and avoid hover-only critical information.
 
-Do not solve large-session performance by dropping requests from the capture model. Summarize the graph view while retaining the full request table.
+### Manual layout cases
+
+For meaningful Request Stories UI changes, test at least:
+
+1. a wide DevTools panel;
+2. a typical laptop-height panel;
+3. a narrow side-docked panel;
+4. a short bottom-docked panel;
+5. browser/DevTools zoom changes when practical;
+6. scrolling and selecting after resize;
+7. opening/closing the technical request inspector;
+8. incoming traffic while a story is selected;
+9. empty capture and the local Learning example;
+10. a noisy page with hundreds or thousands of captured calls.
+
+Do not solve large-session performance by dropping requests from the capture model. Keep the full request collection in Requests and bound only the story analysis/projection.
+
+The optional fixtures under `tests/browser/` are useful for reproducible layout/hit-target regressions but do not replace testing the real unpacked extension on representative sites.
 
 ## Privacy and security
 
@@ -129,8 +151,9 @@ Treat request URLs, headers, cookies, request/response bodies, initiator/source-
 - Do not replay captured requests to inspect responses.
 - Do not log secrets unnecessarily.
 - Do not add broad host permissions for convenience when DevTools or bounded same-origin access can implement the feature.
-- Keep source/provenance inspection bounded.
+- Keep source/provenance and Request Stories relationship inspection bounded.
 - Keep copied debug summaries sanitized by default.
+- Keep local simulated examples isolated from the inspected page and real capture collection.
 - Any future export/cloud/team/source-snippet sharing feature must receive a separate privacy/security review.
 - If a change alters what Blackbox reads or how it uses sensitive data, update the in-product disclosure, `PRIVACY.md`, published privacy page, and Chrome Web Store Privacy practices as applicable.
 
@@ -141,7 +164,7 @@ Keep PRs focused and explain:
 - what problem the change solves;
 - how behavior changed;
 - how it was tested;
-- any new heuristics/thresholds;
+- any new heuristics/thresholds/bounds;
 - any privacy/security/data-access change;
 - screenshots/GIFs for meaningful UI changes when available.
 

@@ -1,0 +1,134 @@
+/* Request Stories is a DevTools workspace, not a landing page.
+   Keep the outcome and the three evidence stages near the top at ordinary
+   laptop heights. Typography, content, native hit targets and capture are
+   unchanged; only density and the arrangement of existing elements change.
+   Loaded after request-stories.css so the viewport rules live in one place. */
+
+.app.rs-active .workspace { container: rs-shell / size; }
+
+.app.rs-active > .topbar { min-height: 36px; padding-block: 3px; }
+.app.rs-active > .view-switch-bar { min-height: 32px; padding-block: 3px; }
+
+.rs-header { gap: 8px 16px; padding: 8px 16px; flex-wrap: wrap; }
+.rs-header h1 { font-size: 18px; line-height: 1.3; margin: 0; }
+.rs-header .rs-eyebrow, .rs-header .rs-subtitle { display: none; }
+.rs-header-actions { gap: 6px; width: auto; }
+.rs-header-actions .rs-button { min-height: 32px; padding: 5px 10px; font-size: 12px !important; }
+.rs-metrics { gap: 6px; padding: 6px 16px; }
+.rs-metric { display: flex; justify-content: space-between; gap: 8px; min-height: 34px; padding: 5px 10px; border-radius: 7px; }
+.rs-metric > span { font-size: 12px; }
+.rs-metric > strong { font-size: 16px; line-height: 1.2; }
+/* Retain the filter descriptions in the accessible names. */
+.rs-metric > small { display: block; position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.rs-snapshot-line { gap: 4px 12px; padding: 0 16px 6px; font-size: 11px; }
+.rs-example-banner { padding: 6px 16px; font-size: 12px; }
+.rs-example-banner .rs-button { min-height: 30px; padding-block: 3px; }
+
+.rs-layout { grid-template-columns: 236px minmax(0, 1fr); }
+.rs-rail-head { padding: 10px 12px; }
+.rs-search-label { margin: 6px 0 8px; }
+.rs-search { padding-block: 6px; min-height: 34px; }
+.rs-endpoints { padding: 5px 6px; }
+.rs-endpoint { padding: 9px 10px; margin-block: 2px; }
+.rs-endpoint > strong { margin-top: 4px; }
+.rs-endpoint-bottom { margin-top: 5px; }
+.rs-content, .rs-rail { scroll-padding-block: 12px; }
+.rs-content:focus-visible { outline: 2px solid var(--rs-accent); outline-offset: -2px; }
+.rs-story { max-width: 1640px; padding: 14px 18px 24px; }
+.rs-story-header { align-items: center; gap: 8px 12px; margin-bottom: 12px; }
+.rs-story-header .rs-eyebrow { display: none; }
+.rs-story-header h2 { font-size: 21px; line-height: 1.3; margin: 0 0 4px; }
+.rs-story-header .rs-button { min-height: 34px; padding-block: 5px; }
+.rs-verdict { padding: 11px 13px; gap: 10px; }
+.rs-verdict h3 { font-size: 18px; margin: 2px 0 3px; }
+.rs-verdict p { font-size: 13px; line-height: 1.5; }
+.rs-verdict-mark { width: 26px; height: 26px; }
+.rs-section-heading { margin: 14px 0 8px; gap: 4px 12px; }
+.rs-section-heading h3 { font-size: 14px; }
+.rs-steps { gap: 14px; }
+.rs-step { padding: 12px; }
+.rs-step-heading { margin-bottom: 8px; }
+.rs-step-icon { width: 24px; height: 24px; border-radius: 6px; }
+.rs-step-icon svg { width: 17px; height: 17px; }
+.rs-step > strong { font-size: 14px; line-height: 1.4; }
+.rs-step > p { margin-top: 5px; font-size: 12px; line-height: 1.5; }
+.rs-step-link { padding-top: 10px; font-size: 11px; }
+.rs-learning-note { margin-top: 10px; padding: 7px 10px; }
+.rs-learning-note > p { margin-top: 2px; font-size: 12px; line-height: 1.5; }
+.rs-next { padding: 10px 12px; }
+.rs-relation { padding: 10px 12px; }
+.rs-no-evidence { padding: 10px 12px; }
+.rs-timing-legend { gap: 8px; margin-top: 10px; }
+.rs-peek { margin-top: 14px; padding-block: 10px; }
+.rs-empty { padding: 24px 20px; }
+
+/* Use wide panels for information instead of blank space. Both sections stay
+   in DOM/keyboard order; each returns to full width when the inspector opens. */
+@container story (min-width: 1000px) {
+  .rs-story { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 20px; }
+  .rs-story > * { grid-column: 1 / -1; min-width: 0; }
+  .rs-story > .rs-evidence-section, .rs-story > .rs-timing-section { grid-column: auto; }
+}
+
+/* Compact controls follow available PANEL size, not the monitor resolution. */
+@container rs (max-width: 800px) {
+  .rs-layout { grid-template-columns: 208px minmax(0, 1fr); }
+  .rs-header, .rs-example-banner { padding-inline: 12px; }
+  .rs-metrics { padding-inline: 12px; }
+  .rs-snapshot-line { padding-inline: 12px; }
+}
+@container rs (max-width: 650px) {
+  .rs-header { padding: 7px 12px; }
+  .rs-header-actions { width: auto; flex: 1 1 auto; justify-content: flex-end; }
+  .rs-header-actions > button { flex: 0 1 auto; }
+  .rs-header h1 { font-size: 18px; }
+  .rs-metrics { gap: 5px; padding: 5px 10px; }
+  .rs-metric { flex-direction: column; justify-content: center; gap: 1px; padding: 4px 2px; }
+  .rs-metric > span { font-size: 11px; }
+  .rs-metric > strong { font-size: 16px; }
+  .rs-snapshot-line { padding: 0 12px 5px; font-size: 11px; }
+  .rs-pickerbar { flex-shrink: 0; padding: 5px 12px; gap: 6px; }
+  .rs-pickerbar > span { display: none; }
+  .rs-pickerbar .rs-button { min-height: 32px; padding-block: 4px; }
+  .rs-example-banner { flex-wrap: nowrap; gap: 6px; font-size: 11px; }
+}
+@container story (max-width: 650px) {
+  .rs-story { padding: 12px 14px 20px; }
+  .rs-story-header { flex-wrap: wrap; margin-bottom: 10px; }
+  .rs-story-header h2 { font-size: 20px; }
+  .rs-steps { gap: 10px; }
+  /* Horizontal stage cards in a vertical chain: icon at left, text at right.
+     No clipping, fixed card heights, inner scrollbars, or smaller body copy. */
+  .rs-step { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 8px; padding: 10px 12px; }
+  .rs-step-heading { grid-column: 1; margin-bottom: 5px; }
+  .rs-step-number { margin-left: 2px; }
+  .rs-step > strong, .rs-step > p { grid-column: 1 / -1; }
+  .rs-step-link { grid-column: 2; grid-row: 1; margin: 0; padding: 0; font-size: 10px; }
+  .rs-step:not(:last-child)::after { bottom: -12px; right: 22px; }
+  .rs-verdict { padding: 10px 12px; }
+  .rs-verdict h3 { font-size: 18px; }
+}
+@container story (max-width: 400px) {
+  .rs-story { padding-inline: 12px; }
+  .rs-story-header h2 { font-size: 19px; }
+  .rs-verdict { gap: 8px; }
+  .rs-verdict h3 { font-size: 17px; }
+}
+@container rs (max-height: 600px) {
+  .rs-header { padding-block: 6px; }
+  .rs-header h1 { font-size: 18px; }
+  .rs-story { padding-top: 10px; }
+  .rs-story-header { margin-bottom: 9px; }
+  .rs-verdict { padding-block: 9px; }
+  .rs-section-heading { margin-top: 11px; }
+  .rs-step { padding-block: 10px; }
+}
+/* Extremely short, bottom-docked panes: let chrome scroll out of the way
+   instead of reserving most of the viewport for it. The whole story/picker
+   remains reachable, including at 200% browser zoom. */
+@container rs-shell (max-height: 340px) {
+  .rs-root { overflow-y: auto; }
+  .rs-layout { flex: 0 0 auto; min-height: 180px; overflow: visible; }
+  .rs-content, .rs-rail { height: auto; max-height: none; overflow: visible; }
+  .rs-rail-head { position: static; }
+}

@@ -57,7 +57,7 @@ A version may be marked **Stable** only after all applicable checks pass:
 - [ ] Response-body inspection works where Chromium exposes the response.
 - [ ] Diagnostic behavior degrades conservatively when evidence is incomplete.
 - [ ] Source/provenance analysis returns truthful fallbacks when authored context is unavailable or ambiguous.
-- [ ] Graph/list navigation works without breaking captured-session state.
+- [ ] Requests/Request Stories navigation works without breaking captured-session state.
 - [ ] Privacy/consent text accurately describes the current response/source/provenance behavior.
 - [ ] Chrome Web Store Privacy practices disclosures match the actual data handled by the extension.
 - [ ] The exact packaged build intended for distribution is tested.
@@ -94,8 +94,8 @@ If production verification fails, the release remains non-stable and should be m
 When GitHub Releases are used:
 
 - Development work normally does not require a GitHub Release.
-- Preview builds may be GitHub **pre-releases** and may use tags such as `v0.3.0-beta.1` or `v0.3.0-rc.1`.
-- A version intended to match a Chrome Web Store submission may use the final numeric tag (for example `v0.3.0`) while its repository release-status documentation remains **Preview** until the distributed Web Store build is verified.
+- Preview builds may be GitHub **pre-releases** and may use tags such as `v0.4.0-beta.1` or `v0.4.0-rc.1`.
+- A version intended to match a Chrome Web Store submission may use the final numeric tag (for example `v0.4.0`) while its repository release-status documentation remains **Preview** until the distributed Web Store build is verified.
 - Once the exact distributed build passes the Stable gate, the same version can be promoted to **Stable** in release-status documentation without changing the version number.
 - A broken or superseded release should remain visible for history, with its release notes/status updated to point users to the recommended version.
 
@@ -130,7 +130,7 @@ At minimum:
 Release notes and verification issues should record these four independent values:
 
 ```text
-Version: 0.3.0
+Version: 0.4.0
 Stage: Preview | Stable | Retired
 Channel: Local | Test | Production
 Health: Working | Known issues | Broken
@@ -141,5 +141,6 @@ Health: Working | Known issues | Broken
 - **v0.1.0** — reached the Chrome Web Store, but the distributed build is known to be broken. Treat it as **Retired / Production history / Broken**.
 - **v0.1.1** — superseded by later reliability releases and no longer recommended.
 - **v0.1.2** — previously verified through the Chrome Web Store; now superseded by v0.2.0.
-- **v0.2.0** — verified working through the Chrome Web Store and is the current **Stable / Production / Working** release until a later version passes the Stable gate.
-- **v0.3.0** — Request Debugger / Source Context release candidate. Treat it as **Preview / Local-Test / Working** until the exact packaged Chrome Web Store build passes the Stable release gate; then promote the same version to **Stable / Production / Working**.
+- **v0.2.0** — verified working through the Chrome Web Store and remains the current **Stable / Production / Working** release until a later version passes the Stable gate.
+- **v0.3.0** — Request Debugger / Source Context candidate that was superseded before production verification. Treat it as **Retired / superseded Preview / Local-Test history**; its functionality is included in v0.4.0.
+- **v0.4.0** — Request Stories / Visual Debugging release candidate, including the full v0.3.0 debugger/source-context foundation. Treat it as **Preview / Local-Test / Working** until the exact merged/tagged package is submitted through the Chrome Web Store and the distributed build passes the Stable release gate; then promote the same version to **Stable / Production / Working**.
