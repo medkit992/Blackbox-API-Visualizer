@@ -4,6 +4,48 @@ All notable user-facing changes to Blackbox API Visualizer are documented here.
 
 Blackbox is pre-1.0; minor releases may still evolve quickly while the core workflow stabilizes.
 
+## [0.4.0] - 2026-09-05
+
+### Added
+
+- **Request Stories**, a symptom-first visual debugging workspace that replaces the free-moving network graph as the active visual experience.
+- Quick investigation views for **Explore**, **What failed?**, **What is slow?**, and **What repeats?**.
+- A searchable API-first request picker that groups captured calls by method, host, and path while retaining access to the underlying requests.
+- A three-stage explanation for a selected request: **Your code → HTTP exchange → Returned data**.
+- Status-specific **What to check next** actions that open the exact request in the existing Blackbox debugger, Request, Response, or Timing view.
+- Evidence-backed connected-request context for captured initiator resources, redirect/preflight candidates, and exact resource URLs already present in loaded JSON responses.
+- A measured timing breakdown that distinguishes unavailable phases from measured zero-duration phases and avoids double-counting SSL time.
+- A recent-call view for an endpoint without assuming repeated calls are accidental duplicates.
+- A local **Learning example** with simulated successful, failed, slow, repeated, and response-to-resource request cases.
+- Dedicated Request Stories architecture documentation and 37 model regression tests.
+- Optional browser regression fixtures for native hit targets, scrolling, resizing, viewport containment, narrow layouts, and packaged-panel behavior.
+
+### Changed
+
+- Replaced drag/zoom canvas navigation with native DOM controls and ordinary scrolling so request selection remains aligned after scrolling, resizing, and zoom changes.
+- Request Stories now uses stable snapshots: newly captured traffic increments a refresh count instead of moving the selected investigation underneath the pointer.
+- Large sessions use a bounded recent analysis window and paged endpoint rendering rather than trying to display every captured call at once.
+- Request Stories adapts to both panel width and height, including narrow side-docked and short bottom-docked DevTools layouts.
+- Wide panels use available horizontal space for evidence and timing instead of oversized empty presentation areas.
+- Short panels compact presentation chrome while preserving readable explanation text and native hit targets.
+- The Privacy/consent dialog remains scrollable so Accept, Close, and Revoke controls stay reachable in short DevTools panes.
+- v0.4.0 includes all v0.3.0 Request Debugger/source-context work and supersedes the unfinished v0.3.0 release candidate before that version was promoted to Stable.
+
+### Performance / reliability
+
+- Request Stories does no canvas layout work and does not continuously reposition visible items as traffic arrives.
+- Analysis is bounded to the newest 5,000 captured requests, with endpoint cards rendered in pages of 40.
+- Selected-story DOM remains stable until the user explicitly refreshes the snapshot.
+- Asynchronous response/source callbacks are generation-guarded so stale work cannot overwrite a newer selection after Clear or navigation.
+
+### Security / privacy
+
+- Request Stories introduces no new host permissions or remote service.
+- It does not replay captured requests.
+- It does not load additional response bodies merely to discover story relationships; exact response-data relationships use response content already loaded by the existing debugger.
+- Relationship wording remains conservative: temporal proximity alone is never presented as proof of causation.
+- The simulated Learning example is local and isolated from the inspected page's captured traffic.
+
 ## [0.3.0] - 2026-08-28
 
 ### Added
@@ -46,12 +88,14 @@ Blackbox is pre-1.0; minor releases may still evolve quickly while the core work
 - Same-origin source-map discovery is bounded to maps associated with captured scripts and does not add a broad host permission.
 - Source/provenance analysis is bounded and refuses ambiguous source attribution.
 
+`v0.3.0` was superseded by `v0.4.0` before completing production/Stable verification. Its functionality is included in v0.4.0.
+
 ## [0.2.0]
 
 - Added the visual Tree / Raw Response Explorer.
 - Added collapsible JSON objects/arrays, value-type display, JavaScript response-path generation, and Copy Path.
 - Added graceful fallbacks for non-JSON, image, empty, loading, and unavailable response bodies.
-- Verified through the Chrome Web Store and is the current Stable production release until v0.3.0 completes production verification.
+- Verified through the Chrome Web Store and remains the current Stable production release until a later Web Store build passes the Stable gate.
 
 ## [0.1.2]
 
