@@ -29,14 +29,16 @@ initiator   provenance   source maps/modules
 
 NormalizedRequest[]
         ↓
-  graphBuilder.ts
+   requestStory.ts
         ↓
-   graphView.ts
+ request-stories.ts
         ↓
-    Cytoscape
+  Request Stories UI
 ```
 
 The Response Explorer consumes the same captured response body used by the debugger; it does not replay requests.
+
+Request Stories is a bounded visual projection over the captured request collection. It does not replace or reduce the authoritative capture model.
 
 ## `capture.ts`
 
@@ -49,7 +51,7 @@ Responsibilities:
 - stop accepting new requests while capture is paused;
 - notify panel/runtime consumers when the capture collection changes.
 
-It should not classify errors, infer source relationships, calculate graph structure, or render UI.
+It should not classify errors, infer source relationships, build Request Stories, or render UI.
 
 ## `parser.ts`
 
@@ -60,7 +62,7 @@ There are two stages:
 1. `parseRequest()` copies/normalizes Chromium/HAR fields and browser-specific metadata.
 2. `normalizeRequest()` flattens useful request information into `NormalizedRequest`.
 
-`NormalizedRequest` is the primary boundary for downstream code. Analyzers, provenance, source-correlation, and graph code should prefer it over reaching into raw DevTools structures.
+`NormalizedRequest` is the primary boundary for downstream code. Analyzers, provenance, source correlation, Request Stories, and technical UI code should prefer it over reaching into raw DevTools structures.
 
 ### Initiator preservation
 
@@ -91,7 +93,7 @@ This analyzer detects observable conditions. It is intentionally separate from t
 
 ## `diagnosticRules.ts`
 
-Contains the declarative diagnostic knowledge catalog used by the v0.3.0 Request Debugger.
+Contains the declarative diagnostic knowledge catalog used by the Request Debugger.
 
 A rule can define:
 
@@ -129,9 +131,12 @@ The runtime calls the original captured DevTools request's `getContent()` method
 - the Response Explorer;
 - server-message/error extraction;
 - Request Diagnosis;
-- source/provenance context where applicable.
+- source/provenance context where applicable;
+- Request Stories when an already-loaded body contains exact connected-resource evidence.
 
 Blackbox never recreates a captured POST/PATCH/DELETE request with `fetch()` merely to inspect its response because doing so could execute the application action a second time.
+
+Request Stories also does not trigger extra response-body loading merely to discover relationships. If a response body has not already been loaded through the normal debugger workflow, story relationship analysis skips it.
 
 ## `initiatorSource.ts`
 
@@ -254,39 +259,60 @@ Current responsibilities include:
 
 Session heuristics should require enough evidence to avoid noisy false positives.
 
-## `graphBuilder.ts`
+## `requestStory.ts`
 
-Builds the complete logical network graph from the current `NormalizedRequest[]`.
+Owns the renderer-independent Request Stories model introduced for v0.4.0.
 
-The graph contains three levels:
+Responsibilities include:
 
-- `page` — the inspected page;
-- `domain` — one node per request host;
-- `endpoint` — one node per method + host + path combination.
+- build a bounded snapshot from the captured request timeline;
+- group requests by method + host + path for the request picker;
+- classify story groups for Explore / problems / slow / repeated filters;
+- explain the selected HTTP outcome without claiming unobserved application state;
+- summarize already-known source/initiator information;
+- calculate measured timing phases without double-counting SSL;
+- find conservative connected-request evidence;
+- expose exact loaded-response URL matches using bounded JSON traversal;
+- sanitize displayed URLs/source labels where applicable.
 
-Graph nodes/edges carry aggregate metrics and request IDs so the panel can drill from an aggregate graph node back to the exact underlying requests.
+Important bounds:
 
-`graphBuilder.ts` describes the complete graph and should not contain UI-specific visibility limits.
+- only the newest 5,000 captured requests are included in a story snapshot;
+- endpoint cards are rendered in pages of 40 by the UI;
+- loaded-response relationship search is bounded by response size, candidate count, traversal depth, and visited values;
+- temporal proximity by itself never creates a request relationship.
 
-## `graphView.ts`
+The full request collection remains in the Requests view. Story bounds are presentation/analysis bounds, not capture truncation.
 
-Projects the complete logical graph into a safe, readable graph for the current UI state.
+## `request-stories.ts`
 
-The graph view:
+Owns the interactive Request Stories controller and native-DOM presentation lifecycle.
 
-- always keeps the page root;
-- ranks domains/endpoints by error count, request count, transferred bytes, then label;
-- supports errors-only projection;
-- reveals endpoints only for expanded domains;
-- caps visible domains/endpoints;
-- reports omitted nodes;
-- avoids unnecessary layout reruns when only metrics change.
+Responsibilities include:
 
-The request table remains the authoritative full dataset. Graph limits are presentation limits, not capture limits.
+- keep the visible snapshot stable while capture continues;
+- expose a refresh count instead of replacing the selected story as traffic arrives;
+- manage symptom filters, endpoint search, API-only filtering, selection, and endpoint paging;
+- render the **Your code → HTTP exchange → Returned data** explanation;
+- link story actions into the existing request inspector tabs;
+- preserve table/story selection synchronization;
+- isolate and restore the local simulated Learning example;
+- escape request-controlled strings before inserting rendered HTML;
+- avoid stale asynchronous updates after navigation/Clear.
+
+`request-stories.css` owns the main visual system and responsive behavior. `request-stories-layout.css` contains the later viewport-density pass that prioritizes evidence in short/narrow DevTools panes without using CSS zoom/transforms or fixed-height clipped cards.
+
+Because Request Stories uses ordinary DOM controls and native scrolling, it has no independent canvas coordinate transform for pointer hit testing.
+
+## Legacy graph helpers
+
+`graphBuilder.ts`, `graphView.ts`, their types/tests, and the Cytoscape dependency remain in the repository temporarily from the earlier graph implementation, but the active v0.4.0 panel no longer uses them.
+
+They should be treated as legacy code rather than the extension point for new Request Stories work. A later cleanup may remove them once release history/compatibility considerations no longer require keeping them.
 
 ## Panel/runtime responsibilities
 
-`panel.ts` owns the general request/session/graph UI.
+`panel.ts` owns general request/session rendering, capture coordination, Requests/Request Stories view switching, and the technical details panel.
 
 `request-debugger-runtime.ts` owns the selected-request debugger lifecycle:
 
@@ -332,9 +358,12 @@ Current safeguards include:
 - capture requires the in-product consent flow;
 - selected responses are read from captured DevTools requests rather than replayed;
 - provenance inspection is bounded;
+- Request Stories does not fetch additional response bodies solely for relationship discovery;
 - source-map discovery is bounded to associated same-origin script maps rather than arbitrary remote source fetching;
 - ambiguous source matches are rejected;
 - copied debug summaries omit the highest-risk raw data by default;
-- clearing/navigating/closing the session clears the relevant in-memory capture/source caches.
+- request-controlled strings rendered by Request Stories are escaped;
+- clearing/navigating/closing the session clears or invalidates relevant in-memory capture/source/story state;
+- the Learning example is simulated locally and never enters the real capture collection.
 
 Any future export, cloud, collaboration, or source-snippet sharing feature must revisit these boundaries before release.
