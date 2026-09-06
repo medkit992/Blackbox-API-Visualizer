@@ -48,7 +48,7 @@ Blackbox is pre-1.0; minor releases may still evolve quickly while the core work
 
 - Issues #5 and #7 are fulfilled by the evidence-first lifecycle/network-vs-application model in this release.
 - Issue #9 remains open for a future opt-in application observer that can safely verify Promise/body-reader/parsing stages without altering page behavior.
-- v0.4.0 is superseded as a Preview before production promotion; its Request Stories and debugger/source-context work are included in v0.5.0.
+- v0.4.0 reached the public Chrome Web Store on September 5, 2026, then was superseded before completing the repository's full post-publication Stable verification; its Request Stories and debugger/source-context work are included in v0.5.0.
 
 ## [0.4.0] - 2026-09-05
 
@@ -76,6 +76,11 @@ Blackbox is pre-1.0; minor releases may still evolve quickly while the core work
 - Short panels compact presentation chrome while preserving readable explanation text and native hit targets.
 - The Privacy/consent dialog remains scrollable so Accept, Close, and Revoke controls stay reachable in short DevTools panes.
 - v0.4.0 includes all v0.3.0 Request Debugger/source-context work and supersedes the unfinished v0.3.0 release candidate before that version was promoted to Stable.
+
+### Release status
+
+- v0.4.0 was successfully published with **Public** visibility in the Chrome Web Store on September 5, 2026.
+- The project moved to v0.5.0 before the distributed v0.4.0 build completed the repository's full post-publication Stable verification gate, so v0.4.0 is retained as a **superseded Production Preview**, not a broken release.
 
 ### Performance / reliability
 
@@ -141,7 +146,7 @@ Blackbox is pre-1.0; minor releases may still evolve quickly while the core work
 - Added the visual Tree / Raw Response Explorer.
 - Added collapsible JSON objects/arrays, value-type display, JavaScript response-path generation, and Copy Path.
 - Added graceful fallbacks for non-JSON, image, empty, loading, and unavailable response bodies.
-- Verified through the Chrome Web Store and remains the current Stable production release until a later Web Store build passes the Stable gate.
+- Verified through the Chrome Web Store and remains the last release to complete the repository's full Stable verification gate before the v0.4 public Preview and v0.5 release candidate.
 
 ## [0.1.2]
 
