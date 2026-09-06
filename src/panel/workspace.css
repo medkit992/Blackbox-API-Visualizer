@@ -1,0 +1,168 @@
+/* Workspace shell overrides the legacy split inspector without changing capture. */
+.app [hidden] { display: none !important; }
+.app { font-size: 13px; line-height: 1.5; min-width: 0; }
+.app > .topbar, .app > .view-switch-bar { flex-shrink: 0; }
+.app > .topbar { gap: 8px; min-height: 42px; padding: 6px 12px; flex-wrap: wrap; }
+.app .topbar__brand { gap: 10px; }
+.app .topbar__actions { flex-wrap: wrap; justify-content: flex-end; }
+.app > .view-switch-bar { min-height: 40px; padding: 0 12px; overflow-x: auto; }
+.app .view-switch { gap: 2px; min-width: max-content; }
+.app .view-switch button { min-height: 39px; padding: 7px 12px; font-size: 12px; border-radius: 0; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--text-muted); cursor: pointer; white-space: nowrap; }
+.app .view-switch button.active { color: #ddd6fe; border-bottom-color: var(--accent); background: none; }
+.app .workspace { display: flex; flex-direction: column; grid-template-columns: none; flex: 1 1 0; min-width: 0; min-height: 0; overflow: hidden; }
+.app .workspace > section { flex: 1 1 0; width: 100%; min-width: 0; min-height: 0; }
+.app .request-panel, .app .graph-panel { border: 0; }
+.app .details-panel { position: relative; inset: auto; z-index: auto; width: 100%; max-width: none; border: 0; display: flex; flex-direction: column; }
+.app .details-header { min-height: 64px; flex: 0 0 auto; align-items: center; justify-content: flex-start; gap: 16px; padding: 10px 18px; }
+.app .details-header > button { width: auto; height: auto; padding: 6px 10px; font-size: 12px; line-height: 1.5; flex-shrink: 0; }
+.request-identity { flex: 1; min-width: 0; }
+.app .details-header__request { margin: 0; font-size: 16px; line-height: 1.4; min-width: 0; gap: 8px; }
+.app #details-path { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.app .details-header__status { margin-top: 3px; font-size: 12px; flex-wrap: wrap; gap: 5px 8px; }
+#request-duration { padding-left: 8px; border-left: 1px solid var(--border-light); font-variant-numeric: tabular-nums; }
+.app .details-tabs { flex: 0 0 auto; gap: 2px; min-height: 40px; padding-inline: 12px; overflow-x: auto; }
+.app .details-tabs button { flex-shrink: 0; min-height: 39px; font-size: 12px; }
+.app .details-content { padding: 20px; min-width: 0; overscroll-behavior: contain; scroll-padding-block: 16px; }
+.app .details-content > * { min-width: 0; max-width: 1440px; margin-inline: auto; }
+.app :is(button, input, select, summary):focus-visible { outline: 2px solid #b8a0ff; outline-offset: 2px; }
+.app .details-tabs button:focus-visible { outline-offset: -3px; }
+.app button { touch-action: manipulation; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+
+/* Dashboard owns all session-level information; it never sits above another tool. */
+.dashboard-panel { overflow: auto; background: var(--bg); overscroll-behavior: contain; }
+.dashboard-body { padding: 24px; max-width: 1480px; margin: 0 auto; }
+.workspace-intro { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 20px; }
+.workspace-intro h2 { font-size: clamp(20px, 2.2vw, 28px); line-height: 1.25; margin: 4px 0 8px; letter-spacing: -.025em; }
+.workspace-intro p { margin: 4px 0; color: var(--text-muted); }
+.workspace-eyebrow { color: #baabdf !important; text-transform: uppercase; letter-spacing: .12em; font-size: 10px; font-weight: 650; margin: 0 0 6px; }
+.workspace-button, .summary-actions button, .request-pagination button, .session-filter-banner button { border: 1px solid var(--border-light); border-radius: 7px; background: var(--surface-hover); color: var(--text); padding: 7px 12px; cursor: pointer; font: inherit; }
+.workspace-button { white-space: nowrap; }
+.app .dashboard-metrics { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 0; gap: 10px; background: none; border: 0; min-height: 0; }
+.dashboard-metrics > div, .dashboard-metrics > button { display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; min-width: 0; min-height: 112px; gap: 4px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text-muted); text-align: left; }
+.dashboard-metrics > button { cursor: pointer; border-color: #46335e; }
+.dashboard-metrics > button:hover { background: var(--surface-active); border-color: #9370ce; }
+.dashboard-metrics span { font-size: 12px; }
+.app .dashboard-metrics strong { font-size: clamp(21px, 2.2vw, 28px); line-height: 1.3; letter-spacing: -.025em; overflow-wrap: anywhere; }
+.dashboard-metrics small { color: #c8b7ef; font-size: 11px; }
+.workspace-note { color: var(--text-muted); font-size: 12px; line-height: 1.6; margin: 10px 0 18px; overflow-wrap: anywhere; }
+.app .session-insights { border: 1px solid var(--border); border-radius: 10px; margin-top: 20px; overflow: hidden; }
+.app .session-insights__header { padding: 14px 16px; }
+.app .session-insights__header h2 { font-size: 14px; text-transform: none; letter-spacing: 0; color: var(--text); }
+.app .session-insights__body { padding: 0 16px 16px; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+.app .session-insights__column { min-width: 0; }
+.app .session-insights__column h3 { color: var(--text-muted); font-size: 11px; margin-bottom: 10px; }
+.app .session-insights__empty { color: var(--text-muted); font-size: 12px; }
+.app .session-issue__title, .app .session-issue__summary { display: block; font-size: 12px; overflow-wrap: anywhere; }
+.app .session-endpoint-row, .app .session-domain-row { font-size: 12px; padding-block: 9px; }
+.app .session-endpoint-row__label, .app .session-domain-row__label { white-space: normal; overflow-wrap: anywhere; }
+.app .session-domain-row__meta { font-size: 11px; }
+.dashboard-recent { margin-top: 24px; }
+.dashboard-recent header { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+.dashboard-recent h2 { font-size: 15px; margin: 0; }
+.dashboard-recent header span { color: var(--text-muted); font-size: 12px; }
+.dashboard-recent-row { display: grid; grid-template-columns: 60px minmax(0, 1fr) 50px 72px; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; text-align: left; border: 0; border-bottom: 1px solid var(--border); background: transparent; color: var(--text); cursor: pointer; font: inherit; }
+.dashboard-recent-row > :nth-last-child(-n+2) { text-align: right; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.dashboard-recent-path { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+/* Find requests: retain table semantics, keep scrolling confined to the table. */
+.app .request-panel { display: flex; flex-direction: column; }
+.app .request-panel .toolbar { flex: 0 0 auto; min-width: 0; padding: 8px 12px; gap: 8px; }
+.app .toolbar__filters { min-width: 0; scrollbar-width: thin; }
+.app .toolbar__search { width: min(280px, 30%); min-width: 145px; flex-shrink: 0; }
+.app .toolbar__search input { width: 100%; }
+.app .request-table-wrapper { position: relative; flex: 1 1 0; min-height: 0; height: auto; }
+.app .request-table { font-size: 12px; min-width: 640px; }
+.app .request-table td { height: 36px; }
+.app .request-table td:nth-child(2) { padding: 0; }
+.request-open-button { border: 0; border-radius: 0; background: none; color: inherit; display: block; width: 100%; min-width: 0; text-align: left; padding: 9px 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.app .request-open-button:focus-visible { outline-offset: -3px; }
+.app .empty-state { position: static; display: flex; min-height: 130px; padding: 24px 16px; pointer-events: auto; }
+.request-pagination { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 5px 12px; padding: 6px 12px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-muted); }
+.request-pagination > div { display: flex; gap: 5px; }
+.request-pagination button { font-size: 11px; padding: 4px 9px; }
+.request-pagination button:disabled { opacity: .45; cursor: default; }
+.app .session-filter-banner { flex: 0 0 auto; overflow-wrap: anywhere; }
+.app .session-filter-banner button { flex-shrink: 0; }
+
+/* Request Summary is a launch point, not a stack of all debugging tools. */
+.request-summary-layout { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+.request-summary-layout > * { min-width: 0; }
+.summary-outcome { border: 1px solid #42335a; border-radius: 10px; padding: 20px; background: linear-gradient(130deg, #1d172c, var(--surface) 80%); }
+.summary-outcome h2 { font-size: 22px; line-height: 1.3; margin: 6px 0 10px; }
+.summary-outcome > p:not(.workspace-eyebrow) { line-height: 1.65; color: var(--text-muted); }
+.summary-boundary { font-size: 12px; border-top: 1px solid var(--border); padding-top: 12px; }
+.summary-boundary strong { font-weight: 500; color: var(--text); }
+.summary-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.summary-actions button { font-size: 12px; }
+.app .request-summary-layout .overview-section { margin: 0; }
+.app .overview-section__header h2 { font-size: 14px; margin: 0 0 10px; }
+.app .details-grid dd { font-size: 13px; }
+.app .details-grid dt { color: var(--text-muted); }
+.summary-source { grid-column: 1 / -1; }
+.summary-source .details-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.summary-metadata { grid-column: 1 / -1; }
+.summary-metadata > summary { cursor: pointer; color: var(--text-muted); padding: 8px 0; }
+.summary-metadata .details-grid { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr); }
+.app #tab-diagnosis > .overview-section { margin-top: 20px; }
+.app #tab-lifecycle .request-lifecycle { border-radius: 10px; }
+.app #tab-diagnosis .diagnosis-columns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.app #tab-diagnosis .diagnosis-section { min-width: 0; }
+.app :is(#details-query, #details-request-headers, #details-response-headers) { overflow: auto; white-space: pre-wrap; }
+.app .timing-list { display: block; }
+
+@media (max-width: 1000px) {
+  .app .dashboard-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .app .session-insights__body { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .app .session-insights__column:first-child { grid-column: 1 / -1; }
+  .app #tab-diagnosis .diagnosis-columns { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 680px) {
+  .dashboard-body { padding: 16px; }
+  .workspace-intro { align-items: flex-start; flex-direction: column; }
+  .app .dashboard-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dashboard-metrics > div, .dashboard-metrics > button { min-height: 98px; padding: 12px; }
+  .app .session-insights__body { grid-template-columns: minmax(0, 1fr); }
+  .app .details-header { gap: 10px; padding: 8px 12px; }
+  .app .details-header__request { font-size: 14px; }
+  .app .details-content { padding: 12px; }
+  .request-summary-layout { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .summary-outcome { padding: 16px; }
+  .summary-outcome h2 { font-size: 20px; }
+  .summary-source .details-grid, .summary-metadata .details-grid { grid-template-columns: minmax(0, 1fr); }
+  .app .request-panel .toolbar { flex-wrap: wrap; }
+  .app .toolbar__filters { flex: 1 1 100%; }
+  .app .toolbar__search { flex: 1 1 100%; min-width: 0; }
+  .dashboard-recent-row { grid-template-columns: 44px minmax(0, 1fr) 32px 54px; gap: 6px; padding-inline: 0; font-size: 12px; }
+  .app .session-filter-banner { flex-wrap: wrap; }
+}
+@media (max-width: 420px) {
+  .app > .topbar { padding-inline: 8px; gap: 5px; }
+  .app .topbar__brand { gap: 8px; }
+  .app .topbar button { padding-inline: 7px; }
+  .app > .view-switch-bar { padding-inline: 6px; }
+  .app .view-switch button { padding-inline: 10px; }
+  .app .details-header { flex-wrap: wrap; gap: 5px; }
+  .app .details-header > button { padding: 3px 7px; }
+  .request-identity { flex-basis: 100%; }
+  .app .details-tabs { padding-inline: 5px; }
+}
+/* In very short DevTools panes the request heading scrolls away, not the content. */
+@media (max-height: 420px) {
+  .app > .topbar { min-height: 32px; padding-block: 3px; }
+  .app > .view-switch-bar { min-height: 32px; }
+  .app .view-switch button { min-height: 31px; padding-block: 4px; }
+  .app .details-panel { display: block; overflow: auto; }
+  .app .details-content { overflow: visible; min-height: 160px; }
+  .app .details-tabs { position: sticky; top: 0; z-index: 2; background: var(--surface); }
+  .workspace-intro { margin-bottom: 12px; }
+  .dashboard-body { padding-top: 14px; }
+}
+@media (prefers-reduced-motion: reduce) { .app *, .app *::before, .app *::after { scroll-behavior: auto !important; transition: none !important; } }
+@media (forced-colors: active) {
+  .app .view-switch button.active, .app .details-tabs button.active { border-bottom: 3px solid Highlight; }
+  .summary-outcome, .dashboard-metrics > div, .dashboard-metrics > button { border: 1px solid CanvasText; background: Canvas; }
+}
+
+/* A programmatically focused heading announces the route without a control-like box. */
+.app #request-heading:focus { outline: none; }
