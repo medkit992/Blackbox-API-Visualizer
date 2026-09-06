@@ -54,14 +54,15 @@ export function createWorkspaceNavigation(onViewChanged: (view: WorkspaceView) =
     }
     if (!focus) return;
     let target = position?.focus;
+    // Resolve the exact Story tool before a generic request-container fallback.
+    if (!target?.isConnected && position?.key) target = Array.from(panels[view].querySelectorAll<HTMLElement>("[data-key]")).find(item => item.dataset.key === position.key);
+    if (!target?.isConnected && position?.inspect) target = Array.from(panels[view].querySelectorAll<HTMLElement>("[data-inspect]")).find(item => item.dataset.inspect === position.inspect);
     if (!target?.isConnected && position?.requestId) {
       // Request rows may have been refreshed after traffic arrived during inspection.
       const row = Array.from(panels[view].querySelectorAll<HTMLElement>("[data-request-id]"))
         .find(item => item.dataset.requestId === position.requestId);
       target = row?.matches("button") ? row : row?.querySelector<HTMLElement>("button") ?? null;
     }
-    if (!target?.isConnected && position?.key) target = Array.from(panels[view].querySelectorAll<HTMLElement>("[data-key]")).find(item => item.dataset.key === position.key);
-    if (!target?.isConnected && position?.inspect) target = Array.from(panels[view].querySelectorAll<HTMLElement>("[data-inspect]")).find(item => item.dataset.inspect === position.inspect);
     if (!target?.isConnected || !target.getClientRects().length) {
       target = primary.querySelector<HTMLElement>(`[data-view="${view}"]`);
     }
