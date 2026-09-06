@@ -10,16 +10,16 @@ Blackbox combines a session Dashboard, searchable request capture, deterministic
 
 | Status | Version | Channel | Health |
 | --- | --- | --- | --- |
-| **Release candidate** | `v0.5.0` | Local / trusted testing; Chrome Web Store submission next | Working in automated testing; exact release-package verification still required |
-| **Latest Stable** | `v0.2.0` | Chrome Web Store | Working / verified |
-| **Superseded Preview** | `v0.4.0` | Local/testing history | Working; functionality included in v0.5.0 |
-| **Superseded Preview** | `v0.3.0` | Local/testing history | Working; functionality included in v0.5.0 |
-| **Superseded Stable** | `v0.1.2` | Chrome Web Store history | Working, superseded by v0.2.0 |
+| **Release candidate** | `v0.5.0` | Local / trusted testing; Chrome Web Store submission next | Working in automated testing; exact merged/tagged package verification still required |
+| **Superseded Production Preview** | `v0.4.0` | Public Chrome Web Store build, published Sep 5, 2026 | Publicly distributed; full post-publication Stable verification was not completed before v0.5.0 superseded it |
+| **Last Stable-verified baseline** | `v0.2.0` | Production history | Working / verified through the repository Stable gate |
+| **Superseded Preview** | `v0.3.0` | Local/testing history | Working; functionality included in later releases |
+| **Superseded Stable** | `v0.1.2` | Chrome Web Store history | Working, superseded by later releases |
 | **Retired** | `v0.1.0` | Chrome Web Store history | **Broken — do not recommend** |
 
-`v0.5.0` remains **Preview / release candidate** until the exact merged/tagged package is submitted to the Chrome Web Store and the distributed build passes the [Stable release gate](docs/release-policy.md). See the [current release status](docs/release-status.md) and the v0.5.0 release-verification issue for the source-of-truth release state.
+`v0.5.0` remains **Preview / release candidate** until the exact merged/tagged package is submitted to the Chrome Web Store and the distributed build passes the [Stable release gate](docs/release-policy.md). See the [current release status](docs/release-status.md) and **#25 — Release verification: v0.5.0** for the source-of-truth release state.
 
-`v0.4.0` was superseded before production promotion. Its Request Stories and debugger/source-context functionality is included in v0.5.0, so it does not need a separate Web Store release.
+`v0.4.0` was successfully published with **Public** visibility in the Chrome Web Store on September 5, 2026. It is now a **superseded Production Preview**: the public build did not finish Blackbox's full post-publication Stable verification before v0.5.0 superseded it. Its Request Stories and debugger/source-context functionality is included in v0.5.0.
 
 ## What's new in v0.5.0
 
@@ -308,7 +308,7 @@ Good contribution areas include:
 
 See [Roadmap: Blackbox API Visualizer v1.0.0](https://github.com/medkit992/Blackbox-API-Visualizer/issues/13) for the planned product direction and v1 feature set.
 
-The Response Explorer (#4) shipped in v0.2.0, Request Diagnosis (#6) was developed in v0.3.0, Request Stories (#3) was developed in v0.4.0, and the lifecycle/network-vs-application model (#5/#7) plus workspace/navigation foundation ship together in v0.5.0. Issue #9 remains open for possible safe application-side async instrumentation. Deeper source inspection remains tracked in #17. The request-feed redesign (#2), Simple/Technical modes (#10), contextual explanations (#21), and broader student-ready polish remain part of the final v1.0.0 pass.
+The Response Explorer (#4) shipped in v0.2.0, Request Diagnosis (#6) was developed in v0.3.0, Request Stories (#3) was developed and publicly shipped in v0.4.0, and the lifecycle/network-vs-application model (#5/#7) plus workspace/navigation foundation ship together in v0.5.0. Issue #9 remains open for possible safe application-side async instrumentation. Deeper source inspection remains tracked in #17. The request-feed redesign (#2), Simple/Technical modes (#10), contextual explanations (#21), and broader student-ready polish remain part of the final v1.0.0 pass.
 
 ## Support development
 
