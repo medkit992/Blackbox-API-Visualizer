@@ -86,7 +86,7 @@ The release-candidate CI suite contains 184 automated tests across 17 files plus
 
 ## Carried forward
 
-v0.5.0 includes the major systems developed in earlier previews:
+v0.5.0 includes the major systems developed in earlier releases/previews:
 
 - Request Stories;
 - deterministic Request Diagnosis;
@@ -96,7 +96,7 @@ v0.5.0 includes the major systems developed in earlier previews:
 - visual Response Explorer with copyable JavaScript paths;
 - session-level polling, duplicate-burst, and repeated-error analysis.
 
-v0.4.0 is superseded before production promotion rather than being shipped separately.
+v0.4.0 was successfully published publicly in the Chrome Web Store on September 5, 2026. It is now superseded by v0.5.0 before its distributed build completed the repository's full post-publication Stable verification gate; its functionality is carried forward here rather than receiving further separate v0.4 promotion work.
 
 ## Privacy / permissions
 
@@ -106,4 +106,4 @@ Captured network/source context remains processed locally by the extension. Exis
 
 ## Release verification
 
-Do not classify v0.5.0 as Stable solely from local/CI testing. The exact merged/tagged ZIP must be loaded and tested, submitted to the Chrome Web Store, installed from the distributed Web Store build, and pass the repository's Stable release gate before v0.5.0 replaces v0.2.0 as the recommended production release.
+Do not classify v0.5.0 as Stable solely from local/CI testing. The exact merged commit must be rebuilt and smoke-tested, then tagged as `v0.5.0`; that exact ZIP must be attached to the GitHub Release, submitted to the Chrome Web Store, installed from the distributed Web Store build, and pass the repository's Stable release gate before v0.5.0 receives final Stable classification.
