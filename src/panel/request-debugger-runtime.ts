@@ -19,7 +19,6 @@ const detailsRelationship = document.getElementById("details-relationship");
 const detailsInitiator = document.getElementById("details-initiator");
 const diagnosisStatus = document.getElementById("diagnosis-status");
 const copySummaryButton = document.getElementById("copy-debug-summary") as HTMLButtonElement | null;
-const closeDetailsButton = document.getElementById("close-details");
 let selectedRequest: NormalizedRequest | null = null;
 let selectedAnalysis: RequestAnalysis | null = null;
 let selectedDiagnosis: RequestDiagnosis | null = null;
@@ -138,7 +137,8 @@ document.addEventListener("blackbox:request-selected", event => {
   const request = (event as CustomEvent<NormalizedRequest>).detail;
   if (request && requestsById.get(request.id) === request) selectRequest(request);
 });
-closeDetailsButton?.addEventListener("click", () => {
+// Back and primary navigation share one close path; tab switches do not reset analysis.
+document.addEventListener("blackbox:request-closed", () => {
   sourceResolutionVersion++;
   selectedRequest = null; selectedAnalysis = null; selectedDiagnosis = null; selectedSourceContext = null;
   if (copySummaryButton) copySummaryButton.disabled = true;

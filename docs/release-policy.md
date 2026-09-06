@@ -74,11 +74,13 @@ Development
     ↓
 Preview / Release Candidate
     ↓
-Package + automated verification
+Merge intended release commit
     ↓
-Extended/manual testing
+Clean validation + exact package smoke test
     ↓
-Test channel (when useful)
+Tag the exact smoke-tested commit
+    ↓
+GitHub Release / submission package
     ↓
 Production / Chrome Web Store
     ↓
@@ -95,7 +97,7 @@ When GitHub Releases are used:
 
 - Development work normally does not require a GitHub Release.
 - Preview builds may be GitHub **pre-releases** and may use tags such as `v0.4.0-beta.1` or `v0.4.0-rc.1`.
-- A version intended to match a Chrome Web Store submission may use the final numeric tag (for example `v0.4.0`) while its repository release-status documentation remains **Preview** until the distributed Web Store build is verified.
+- A version intended to match a Chrome Web Store submission may use the final numeric tag (for example `v0.5.0`) while its repository release-status documentation remains **Preview** until the distributed Web Store build is verified.
 - Once the exact distributed build passes the Stable gate, the same version can be promoted to **Stable** in release-status documentation without changing the version number.
 - A broken or superseded release should remain visible for history, with its release notes/status updated to point users to the recommended version.
 
@@ -105,11 +107,13 @@ Chrome extension manifest versions must remain numeric. If preview builds are di
 
 For Chrome Web Store and GitHub binary packages:
 
-- Build from the intended merged/tagged commit.
-- Run the full CI-equivalent validation before packaging.
+- Merge the intended release changes first.
+- Pull the exact merged commit and run the full CI-equivalent validation from a clean install.
+- Build the distribution ZIP from that exact commit and load/test the extracted ZIP before creating the final release tag.
+- After the package smoke test passes, tag **that same commit**; do not make source/version changes between smoke testing and tagging.
 - ZIP the **contents of `dist/`**, so `manifest.json` is at the ZIP root.
 - Do not ZIP the repository root, source tree, `node_modules`, or an extra parent `dist/` directory.
-- Load/test the exact ZIP (or its extracted contents) before submitting it to the Chrome Web Store.
+- Use the exact smoke-tested ZIP for both the GitHub Release and Chrome Web Store submission.
 - Keep release binaries in GitHub Releases rather than treating an old checked-in ZIP as the source of truth for the current release.
 
 ## Privacy release gate
@@ -130,7 +134,7 @@ At minimum:
 Release notes and verification issues should record these four independent values:
 
 ```text
-Version: 0.4.0
+Version: 0.5.0
 Stage: Preview | Stable | Retired
 Channel: Local | Test | Production
 Health: Working | Known issues | Broken
@@ -140,7 +144,8 @@ Health: Working | Known issues | Broken
 
 - **v0.1.0** — reached the Chrome Web Store, but the distributed build is known to be broken. Treat it as **Retired / Production history / Broken**.
 - **v0.1.1** — superseded by later reliability releases and no longer recommended.
-- **v0.1.2** — previously verified through the Chrome Web Store; now superseded by v0.2.0.
-- **v0.2.0** — verified working through the Chrome Web Store and remains the current **Stable / Production / Working** release until a later version passes the Stable gate.
-- **v0.3.0** — Request Debugger / Source Context candidate that was superseded before production verification. Treat it as **Retired / superseded Preview / Local-Test history**; its functionality is included in v0.4.0.
-- **v0.4.0** — Request Stories / Visual Debugging release candidate, including the full v0.3.0 debugger/source-context foundation. Treat it as **Preview / Local-Test / Working** until the exact merged/tagged package is submitted through the Chrome Web Store and the distributed build passes the Stable release gate; then promote the same version to **Stable / Production / Working**.
+- **v0.1.2** — previously verified through the Chrome Web Store; now superseded by later releases.
+- **v0.2.0** — verified working through the Chrome Web Store and remains the last build to complete the repository's full **Stable / Production / Working** verification gate.
+- **v0.3.0** — Request Debugger / Source Context candidate that was superseded before production verification. Treat it as **Retired / superseded Preview / Local-Test history**; its functionality is included in later releases.
+- **v0.4.0** — Request Stories / Visual Debugging release, including the v0.3.0 debugger/source-context foundation. It was successfully published publicly in the Chrome Web Store on September 5, 2026, then superseded by v0.5.0 before its distributed build completed the full Stable gate. Treat it as **Retired / superseded Production Preview / Public history**, not Broken.
+- **v0.5.0** — Workspace + Request Lifecycle release candidate. Keep it **Preview** through merge, exact-package smoke testing, GitHub release, and Chrome Web Store submission; promote to **Stable / Production / Working** only after the distributed v0.5.0 build passes the Stable gate.

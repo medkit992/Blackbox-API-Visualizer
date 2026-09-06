@@ -11,48 +11,83 @@
     <link rel="stylesheet" href="./request-debugger.css" />
     <link rel="stylesheet" href="./request-stories.css" />
     <link rel="stylesheet" href="./request-stories-layout.css" />
+    <link rel="stylesheet" href="./workspace.css" />
   </head>
   <body>
-    <div class="app">
+    <div class="app" data-workspace="dashboard">
       <header class="topbar">
         <div class="topbar__brand"><h1>Blackbox</h1><span id="recording-status" class="recording-status">Recording</span></div>
         <div class="topbar__actions"><button id="privacy-settings" type="button">Privacy</button><button id="toggle-recording" type="button">Pause</button><button id="clear-requests" type="button">Clear</button></div>
       </header>
-      <section class="toolbar">
-        <div class="toolbar__filters" id="request-filters">
-          <button type="button" data-category="All" class="active">All</button><button type="button" data-category="Fetch">Fetch</button><button type="button" data-category="XHR">XHR</button><button type="button" data-category="Document">Documents</button><button type="button" data-category="Script">JS</button><button type="button" data-category="Stylesheet">CSS</button><button type="button" data-category="Image">Images</button><button type="button" data-category="WebSocket">WS</button><button type="button" data-category="Errors">Errors</button>
+      <nav class="view-switch-bar" aria-label="Blackbox workspaces">
+        <div class="view-switch" id="view-switch">
+          <button type="button" data-view="dashboard" class="active" aria-current="page">Dashboard</button>
+          <button type="button" data-view="requests">Requests</button>
+          <button type="button" data-view="graph">Request Stories</button>
         </div>
-        <div class="toolbar__search"><input id="request-search" type="search" placeholder="Search requests..." autocomplete="off" /></div>
-      </section>
-      <section class="summary-bar"><span><strong id="request-count">0</strong> requests</span><span><strong id="transferred-size">0 B</strong> transferred</span><span><strong id="total-duration">0 ms</strong> total</span></section>
-      <section id="session-insights" class="session-insights">
-        <header class="session-insights__header"><h2>Session Insights</h2><button id="toggle-session-insights" type="button" class="session-insights__toggle" aria-expanded="true">Hide</button></header>
-        <div id="session-insights-body" class="session-insights__body">
-          <div class="session-insights__column"><h3>Issues</h3><div id="session-issues-list" class="session-issues-list"><p class="session-insights__empty">No issues detected.</p></div></div>
-          <div class="session-insights__column"><h3>Top Endpoints</h3><div id="session-endpoints-list" class="session-endpoints-list"></div></div>
-          <div class="session-insights__column"><h3>Domains</h3><div id="session-domains-list" class="session-domains-list"></div></div>
-        </div>
-      </section>
-      <section class="view-switch-bar">
-        <div class="view-switch" id="view-switch" role="group" aria-label="Network view">
-          <button type="button" data-view="requests" class="active" aria-pressed="true">Requests</button>
-          <button type="button" data-view="graph" aria-pressed="false">Request stories</button>
-        </div>
-      </section>
+      </nav>
       <main class="workspace">
-        <section id="request-panel" class="request-panel">
-          <div id="session-filter-banner" class="session-filter-banner" hidden><span id="session-filter-banner-text"></span><button id="session-filter-clear" type="button">Clear</button></div>
-          <div class="request-table-wrapper"><table class="request-table"><thead><tr><th>Method</th><th>Request</th><th>Status</th><th>Type</th><th>Size</th><th>Time</th></tr></thead><tbody id="request-list"></tbody></table></div>
-          <div id="request-empty-state" class="empty-state"><h2>No requests captured yet</h2><p>Network requests from the inspected page will appear here.</p></div>
+        <section id="dashboard-panel" class="dashboard-panel" aria-labelledby="dashboard-title">
+          <div class="dashboard-body">
+            <header class="workspace-intro"><div><p class="workspace-eyebrow">Session overview</p><h2 id="dashboard-title">What needs your attention?</h2><p>Start with a pattern, then follow the evidence into a request.</p></div><button type="button" class="workspace-button" id="dashboard-browse">Browse requests →</button></header>
+            <section class="summary-bar dashboard-metrics" aria-label="Captured session statistics">
+              <div><span>Captured requests</span><strong id="request-count">0</strong></div>
+              <div><span>Response size</span><strong id="transferred-size">0 B</strong></div>
+              <div><span>Capture span</span><strong id="total-duration">0 ms</strong></div>
+              <button type="button" data-dashboard-filter="Errors"><span>HTTP errors</span><strong id="dashboard-errors">0</strong><small>Inspect 4xx / 5xx →</small></button>
+              <button type="button" data-dashboard-filter="Slow"><span>Slow requests</span><strong id="dashboard-slow">0</strong><small>Longer than 1 second →</small></button>
+            </section>
+            <p class="workspace-note">Session statistics cover all captured requests. Response size is reported content size, not wire transfer; capture span is elapsed time, not a sum of request durations.</p>
+            <section id="session-insights" class="session-insights" aria-labelledby="session-insights-title">
+              <header class="session-insights__header"><h2 id="session-insights-title">Session insights</h2><button id="toggle-session-insights" type="button" class="session-insights__toggle" aria-expanded="true" aria-controls="session-insights-body">Hide</button></header>
+              <div id="session-insights-body" class="session-insights__body">
+                <div class="session-insights__column"><h3>Needs attention</h3><div id="session-issues-list" class="session-issues-list"><p class="session-insights__empty">No patterns detected in captured traffic.</p></div></div>
+                <div class="session-insights__column"><h3>Top endpoints</h3><div id="session-endpoints-list" class="session-endpoints-list"></div></div>
+                <div class="session-insights__column"><h3>Domains</h3><div id="session-domains-list" class="session-domains-list"></div></div>
+              </div>
+            </section>
+            <section class="dashboard-recent" aria-labelledby="recent-title"><header><h2 id="recent-title">Recent activity</h2><span>Latest 8 captured requests</span></header><div id="dashboard-recent-list"><p class="workspace-note">Nothing captured yet. Allow capture in Privacy and make a request on the inspected page.</p></div></section>
+          </div>
         </section>
-        <section id="graph-panel" class="graph-panel" hidden aria-label="Request stories"><div id="request-stories"></div></section>
-        <aside id="request-details" class="details-panel" hidden>
+        <section id="request-panel" class="request-panel" hidden aria-label="Captured requests">
+          <section class="toolbar" aria-label="Find requests">
+            <div class="toolbar__filters" id="request-filters">
+              <button type="button" data-category="All" class="active" aria-pressed="true">All</button><button type="button" data-category="Fetch" aria-pressed="false">Fetch</button><button type="button" data-category="XHR" aria-pressed="false">XHR</button><button type="button" data-category="Errors" aria-pressed="false">Errors</button><button type="button" data-category="Slow" aria-pressed="false">Slow</button><button type="button" data-category="Document" aria-pressed="false">Documents</button><button type="button" data-category="Script" aria-pressed="false">JS</button><button type="button" data-category="Stylesheet" aria-pressed="false">CSS</button><button type="button" data-category="Image" aria-pressed="false">Images</button><button type="button" data-category="WebSocket" aria-pressed="false">WS</button>
+            </div>
+            <div class="toolbar__search"><label class="visually-hidden" for="request-search">Search request URL, method, status or type</label><input id="request-search" type="search" placeholder="Search requests…" autocomplete="off" /></div>
+          </section>
+          <div id="session-filter-banner" class="session-filter-banner" hidden><span id="session-filter-banner-text"></span><button id="session-filter-clear" type="button">Clear selection filter</button></div>
+          <div class="request-table-wrapper" data-preserve-scroll>
+            <table class="request-table"><thead><tr><th scope="col">Method</th><th scope="col">Request</th><th scope="col">Status</th><th scope="col">Type</th><th scope="col">Size</th><th scope="col">Time</th></tr></thead><tbody id="request-list"></tbody></table>
+            <div id="request-empty-state" class="empty-state"><h2>No requests captured yet</h2><p>Network requests from the inspected page will appear here.</p></div>
+          </div>
+          <footer class="request-pagination"><span id="request-page-status" aria-live="polite">0 requests</span><div><button id="request-page-prev" type="button" disabled>Previous</button><button id="request-page-next" type="button" disabled>Next</button></div></footer>
+        </section>
+        <section id="graph-panel" class="graph-panel" hidden aria-label="Request Stories"><div id="request-stories"></div></section>
+        <section id="request-details" class="details-panel" hidden aria-labelledby="request-heading">
           <header class="details-header">
-            <div><div class="details-header__request"><span id="details-method"></span><span id="details-path"></span></div><div class="details-header__status"><span id="details-status"></span><span id="details-status-text"></span></div></div>
-            <button id="close-details" type="button" aria-label="Close request details">×</button>
+            <button id="close-details" type="button" aria-label="Back to Dashboard">← Dashboard</button>
+            <div class="request-identity"><h2 id="request-heading" class="details-header__request" tabindex="-1"><span id="details-method"></span><span id="details-path"></span></h2><div class="details-header__status"><span id="details-status"></span><span id="details-status-text"></span><span id="request-duration"></span></div></div>
           </header>
-          <nav class="details-tabs" aria-label="Request details"><button type="button" data-tab="overview" class="active">Overview</button><button type="button" data-tab="request">Request</button><button type="button" data-tab="response">Response</button><button type="button" data-tab="headers">Headers</button><button type="button" data-tab="timing">Timing</button></nav>
-          <section id="tab-overview" class="details-content" data-tab-content="overview">
+          <nav class="details-tabs" role="tablist" aria-label="Request tools">
+            <button id="request-tab-overview" type="button" role="tab" aria-controls="tab-overview" aria-selected="true" data-tab="overview" class="active">Summary</button>
+            <button id="request-tab-lifecycle" type="button" role="tab" aria-controls="tab-lifecycle" aria-selected="false" tabindex="-1" data-tab="lifecycle">Lifecycle</button>
+            <button id="request-tab-diagnosis" type="button" role="tab" aria-controls="tab-diagnosis" aria-selected="false" tabindex="-1" data-tab="diagnosis">Diagnose</button>
+            <button id="request-tab-request" type="button" role="tab" aria-controls="tab-request" aria-selected="false" tabindex="-1" data-tab="request">Request</button>
+            <button id="request-tab-response" type="button" role="tab" aria-controls="tab-response" aria-selected="false" tabindex="-1" data-tab="response">Response</button>
+            <button id="request-tab-timing" type="button" role="tab" aria-controls="tab-timing" aria-selected="false" tabindex="-1" data-tab="timing">Timing</button>
+            <button id="request-tab-headers" type="button" role="tab" aria-controls="tab-headers" aria-selected="false" tabindex="-1" data-tab="headers">Headers</button>
+          </nav>
+          <section id="tab-overview" class="details-content" data-tab-content="overview" role="tabpanel" aria-labelledby="request-tab-overview" tabindex="0">
+            <div class="request-summary-layout">
+              <section class="summary-outcome" aria-labelledby="summary-diagnosis-title"><p class="workspace-eyebrow">Request outcome</p><h2 id="summary-diagnosis-title">Analyzing request…</h2><p id="summary-diagnosis-text"></p><p class="summary-boundary">Application handling: <strong>Not observed</strong></p><div class="summary-actions"><button type="button" data-open-tab="lifecycle">Explore lifecycle →</button><button type="button" data-open-tab="diagnosis">Read diagnosis →</button><button type="button" data-open-tab="response">Explore response →</button></div></section>
+              <section class="overview-section" aria-labelledby="request-facts-title"><div class="overview-section__header"><h2 id="request-facts-title">At a glance</h2></div><dl class="details-grid"><div><dt>Host</dt><dd id="details-host"></dd></div><div><dt>Type</dt><dd id="details-type"></dd></div><div><dt>Duration</dt><dd id="details-duration"></dd></div><div><dt>Response size</dt><dd id="details-response-size"></dd></div></dl></section>
+              <section class="overview-section summary-source" aria-labelledby="source-context-title"><div class="overview-section__header"><h2 id="source-context-title">Where to start in your code</h2></div><dl class="details-grid"><div><dt>Suggested source</dt><dd id="details-source">N/A</dd></div><div><dt>Relationship evidence</dt><dd id="details-relationship">N/A</dd></div><div><dt>Browser initiator</dt><dd id="details-initiator"></dd></div></dl><p class="workspace-note">Source context is a debugging lead, not proof that this code caused the problem.</p></section>
+              <details class="summary-metadata"><summary>More request metadata</summary><dl class="details-grid"><div><dt>Full URL</dt><dd id="details-url"></dd></div><div><dt>Priority</dt><dd id="details-priority"></dd></div><div><dt>Server IP</dt><dd id="details-server-ip"></dd></div></dl></details>
+            </div>
+          </section>
+          <section id="tab-lifecycle" class="details-content" data-tab-content="lifecycle" hidden role="tabpanel" aria-labelledby="request-tab-lifecycle" tabindex="0"><div id="request-lifecycle-anchor" hidden></div></section>
+          <section id="tab-diagnosis" class="details-content" data-tab-content="diagnosis" hidden role="tabpanel" aria-labelledby="request-tab-diagnosis" tabindex="0">
             <section id="request-diagnosis" class="request-diagnosis request-diagnosis--idle" aria-labelledby="request-diagnosis-title" data-diagnosis-state="idle">
               <header class="request-diagnosis__header"><div><p class="request-diagnosis__eyebrow">Debugger</p><h2 id="request-diagnosis-title">Request Diagnosis</h2></div><div class="request-diagnosis__badges"><span id="diagnosis-severity" class="diagnosis-badge">Not analyzed</span><span id="diagnosis-confidence" class="diagnosis-confidence" hidden></span></div></header>
               <div class="request-diagnosis__summary"><h3 id="diagnosis-title">Ready for diagnostic analysis</h3><p id="diagnosis-summary">Select a captured request to inspect its result, evidence, and debugging suggestions.</p></div>
@@ -64,23 +99,19 @@
               </div>
               <footer class="request-diagnosis__footer"><span id="diagnosis-status" class="diagnosis-status" aria-live="polite">Select a request to begin</span><button id="copy-debug-summary" type="button" disabled>Copy Debug Summary</button></footer>
             </section>
-            <section class="overview-section" aria-labelledby="detected-signals-title"><div class="overview-section__header"><div><p class="overview-section__eyebrow">Existing analyzer</p><h2 id="detected-signals-title">Detected Signals</h2></div></div><div id="details-insights" class="insights-list"></div></section>
-            <section class="overview-section" aria-labelledby="request-metadata-title">
-              <div class="overview-section__header"><div><p class="overview-section__eyebrow">Request facts</p><h2 id="request-metadata-title">Metadata</h2></div></div>
-              <dl class="details-grid"><div><dt>URL</dt><dd id="details-url"></dd></div><div><dt>Host</dt><dd id="details-host"></dd></div><div><dt>Type</dt><dd id="details-type"></dd></div><div><dt>Duration</dt><dd id="details-duration"></dd></div><div><dt>Response Size</dt><dd id="details-response-size"></dd></div><div><dt>Priority</dt><dd id="details-priority"></dd></div><div><dt>Source</dt><dd id="details-source">N/A</dd></div><div><dt>Relationship</dt><dd id="details-relationship">N/A</dd></div><div><dt>Browser Initiator</dt><dd id="details-initiator"></dd></div><div><dt>Server IP</dt><dd id="details-server-ip"></dd></div></dl>
-            </section>
+            <section class="overview-section" aria-labelledby="detected-signals-title"><div class="overview-section__header"><h2 id="detected-signals-title">Additional signals</h2></div><div id="details-insights" class="insights-list"></div></section>
           </section>
-          <section id="tab-request" class="details-content" data-tab-content="request" hidden><section class="details-section"><h3>Query Parameters</h3><div id="details-query"></div></section><section class="details-section"><h3>Request Body</h3><pre id="details-request-body"></pre></section></section>
-          <section id="tab-response" class="details-content" data-tab-content="response" hidden><div class="response-toolbar"><span id="details-response-mime"></span></div><pre id="details-response-body">Response body loads automatically when you select a request.</pre></section>
-          <section id="tab-headers" class="details-content" data-tab-content="headers" hidden><section class="details-section"><h3>Request Headers</h3><div id="details-request-headers"></div></section><section class="details-section"><h3>Response Headers</h3><div id="details-response-headers"></div></section></section>
-          <section id="tab-timing" class="details-content" data-tab-content="timing" hidden><div id="details-timings" class="timing-list"></div></section>
-        </aside>
+          <section id="tab-request" class="details-content" data-tab-content="request" hidden role="tabpanel" aria-labelledby="request-tab-request" tabindex="0"><section class="details-section"><h3>Query Parameters</h3><pre id="details-query"></pre></section><section class="details-section"><h3>Request Body</h3><pre id="details-request-body"></pre></section></section>
+          <section id="tab-response" class="details-content" data-tab-content="response" hidden role="tabpanel" aria-labelledby="request-tab-response" tabindex="0"><div class="response-toolbar"><span id="details-response-mime"></span></div><pre id="details-response-body">Response body loads automatically when you select a request.</pre></section>
+          <section id="tab-timing" class="details-content" data-tab-content="timing" hidden role="tabpanel" aria-labelledby="request-tab-timing" tabindex="0"><section class="details-section"><h3>Request timing</h3><p class="workspace-note">Raw timing values are in milliseconds. Missing or negative phases are unavailable; zero is a measured value. SSL is part of connect, not extra elapsed time. The Lifecycle checkpoints explain the measured Send and Wait phases.</p><pre id="details-timings" class="timing-list"></pre></section></section>
+          <section id="tab-headers" class="details-content" data-tab-content="headers" hidden role="tabpanel" aria-labelledby="request-tab-headers" tabindex="0"><section class="details-section"><h3>Request Headers</h3><pre id="details-request-headers"></pre></section><section class="details-section"><h3>Response Headers</h3><pre id="details-response-headers"></pre></section></section>
+        </section>
       </main>
     </div>
     <div id="network-consent" class="consent-overlay" role="dialog" aria-modal="true" aria-labelledby="consent-title" hidden>
       <section class="consent-dialog">
         <p class="consent-dialog__eyebrow">Privacy &amp; data access</p><h2 id="consent-title">Allow Blackbox to read network traffic?</h2>
-        <p>Blackbox reads network data from the page currently inspected in DevTools so it can build the request table, diagnostics, session insights, and network graph.</p>
+        <p>Blackbox reads network data from the page currently inspected in DevTools so it can build the request table, diagnostics, session insights, and Request Stories.</p>
         <p class="consent-dialog__notice">This data may include <strong>URLs, headers, cookies or authentication values, query parameters, request bodies, response data, source resources, and timing metadata</strong>. Blackbox processes this information locally in the DevTools extension and does not send captured traffic to Blackbox servers.</p>
         <p>Response bodies are retrieved automatically when you select a captured request. When tracing where a resource came from, Blackbox may also inspect a bounded set of recent successful Fetch/XHR responses and source resources exposed by DevTools to find exact URL relationships and authored source locations. If a generated same-origin script has a conventional sibling source-map file, Blackbox may request that map locally from the inspected site to resolve the original source file. This context stays local. You can pause capture, clear the current session, or revoke access from Privacy at any time.</p>
         <a class="consent-dialog__link" href="https://medkit992.github.io/Blackbox-API-Visualizer/" target="_blank" rel="noreferrer">Read the privacy policy</a>

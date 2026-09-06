@@ -4,59 +4,67 @@ This file is the human-readable source of truth for which Blackbox builds are re
 
 | Version | Stage | Channel | Health | Recommendation |
 | --- | --- | --- | --- | --- |
-| `v0.4.0` | Preview / release candidate | Local / trusted testing; Chrome Web Store submission next | Working in automated/manual testing | Package and submit after merge; mark Stable only after the actual Web Store build passes verification |
-| `v0.3.0` | Retired / superseded Preview | Local/testing history | Working, but superseded before production verification | Do not ship separately; its debugger/source-context work is included in v0.4.0 |
-| `v0.2.0` | Stable | Production (Chrome Web Store) | Working / verified | Current recommended production release until v0.4.0 passes production verification |
-| `v0.1.2` | Retired / superseded Stable | Production history | Working, superseded by v0.2.0 | Do not recommend over v0.2.0 |
+| `v0.5.0` | Preview / release candidate | Local / trusted testing; Chrome Web Store submission next | Working in automated testing; exact merged/tagged package verification still required | Merge/package/smoke-test, then tag/release/submit; mark Stable only after the actual Web Store build passes verification |
+| `v0.4.0` | Retired / superseded Production Preview | Production / Public (Chrome Web Store, published Sep 5, 2026) | Published publicly and working in pre-publication testing; full distributed-build Stable verification was not completed before supersession | Do not continue separate v0.4 Stable promotion; move forward with v0.5.0 |
+| `v0.3.0` | Retired / superseded Preview | Local/testing history | Working, but superseded before production verification | Do not ship separately; its debugger/source-context work is included in later releases |
+| `v0.2.0` | Stable baseline | Production history | Working / verified | Last release to complete the repository's full Stable verification gate |
+| `v0.1.2` | Retired / superseded Stable | Production history | Working, superseded by later releases | Do not recommend over later builds |
 | `v0.1.1` | Retired / superseded | Production history | Superseded by later releases | Do not recommend |
 | `v0.1.0` | Retired | Production history | Broken | Do not recommend |
 
 ## Current recommendation
 
-`v0.2.0` remains the current **Stable / Production / Working** Chrome Web Store release until the exact `v0.4.0` package is submitted, installed from the Chrome Web Store, and passes the Stable release gate.
+`v0.5.0` is the current **Preview / release candidate**. It combines the debugger/source-context foundation, Request Stories, the new full-width workspace/navigation system, Dashboard, and the evidence-first Request Lifecycle. Track its release gate in **#25 — Release verification: v0.5.0**.
 
-`v0.4.0` is the current **Preview / release candidate**. It combines the v0.3.0 Request Debugger/source-context work with the new Request Stories visual debugging workspace. Track its release gate in the v0.4.0 release-verification issue.
+`v0.4.0` reached the **public Chrome Web Store** on September 5, 2026. It is now classified as a **superseded Production Preview**: the build was publicly distributed, but the repository's full post-publication Stable verification was not completed before v0.5.0 superseded it. Historical verification is preserved in #23.
 
-`v0.3.0` is retired as a **superseded Preview**. It was never promoted to Stable through the production verification path; its functionality is carried forward into v0.4.0 rather than shipping a second intermediate Web Store build.
+`v0.2.0` remains the last build that completed the repository's full **Stable / Working** verification gate. The release process deliberately distinguishes a build being publicly distributed from that build completing Blackbox's post-distribution Stable verification.
 
-### v0.4.0 release focus
+`v0.3.0` remains retired as a **superseded Preview** and was never promoted through production verification.
 
-#### Request Stories
+## v0.5.0 release focus
 
-- Replaces the free-moving network graph with a stable, readable visual debugging workspace.
-- Starts from useful debugging questions: **What failed?**, **What is slow?**, and **What repeats?**.
-- Explains a selected request as **Your code → HTTP exchange → Returned data**.
-- Links status-specific next steps directly into the existing request debugger and technical tabs.
-- Shows evidence-backed connected-request context without treating timing proximity as causation.
-- Adds measured timing explanations and recent endpoint-call comparison.
-- Uses stable snapshots so newly captured traffic does not move the current investigation.
-- Includes a local simulated Learning example.
-- Adapts to wide, narrow, short, and zoomed DevTools layouts using native DOM controls and scrolling.
-- Bounds large-session analysis and endpoint rendering for predictable performance.
+### Workspace / navigation
 
-#### Request Debugger / source context carried forward from v0.3.0
+- Adds a Dashboard landing page for session health, recent requests, top endpoints/domains, and actionable problems.
+- Keeps Requests focused on finding traffic with search, filters, and bounded pagination.
+- Keeps Request Stories focused on symptom-first visual investigation and stable snapshots.
+- Replaces the cramped persistent side inspector with a full-width selected-request workspace.
+- Separates **Summary / Lifecycle / Diagnose / Request / Response / Timing / Headers** into focused request destinations.
+- Restores originating workspace context when leaving an investigation.
+- Preserves mounted Response Explorer and lifecycle state across request-level navigation.
+- Adapts to narrow side-docked and short bottom-docked DevTools panels.
 
-- Deterministic Request Diagnosis for successful and problematic requests.
-- Evidence, category, confidence, likely causes, and concrete debugging suggestions.
+### Request Lifecycle
+
+- Shows **Initiator → Request → Send → Wait → Response → Parse → Data ready → Use data → back to code**.
+- Uses a circular SVG track with native DOM controls on roomy panels and a vertical stepper on compact panels.
+- Makes each checkpoint selectable and connects it to plain-language evidence and the relevant technical Blackbox view.
+- Separates HTTP/network evidence from application parsing/data-use state.
+- Keeps unsupported application stages explicitly **Not observed** instead of inventing application telemetry.
+- Includes isolated teaching examples for successful, HTTP-error-with-JSON, and parse-failure flows.
+
+### Request Stories / debugger / response tools carried forward
+
+- Symptom-first Request Stories with stable snapshots, evidence-backed relationships, measured timing, and bounded large-session work.
+- Deterministic Request Diagnosis with evidence, category, confidence, likely causes, and concrete debugging suggestions.
 - Automatic local response-body loading when a captured request is selected.
 - Privacy-safe Copy Debug Summary.
-- Chromium initiator-stack preservation and readable browser-initiator context.
-- Authored-source correlation through source maps and common Webpack development-module metadata.
+- Chromium initiator-stack preservation and authored-source correlation where evidence supports it.
 - Exact derived-resource provenance through earlier Fetch/XHR response values.
-- Separate debugging source, relationship, browser initiator, and generated-location evidence.
-- Bounded same-origin source-map discovery for captured scripts when DevTools has not already exposed the map.
-- Updated privacy/consent disclosures and versioned consent for the expanded response/source/provenance behavior introduced in v0.3.0.
+- Visual Response Explorer with Tree / Raw views and copyable JavaScript paths.
 
 ## Known release-candidate limitations
 
 These limitations are expected and do not automatically make the release broken:
 
+- Live **Parse / Data ready / Use data** lifecycle checkpoints are not application telemetry and remain unknown unless direct evidence exists.
+- Issue #9 remains open for a possible future opt-in application observer; v0.5.0 does not wrap `fetch`, Promises, `Response` readers, or arbitrary property access.
 - Authored-source resolution is best-effort and depends on source maps, dev-server metadata, and available source resources.
 - Production/minified builds may only expose generated locations.
 - Ambiguous source matches intentionally fall back instead of guessing.
-- Request Stories does not claim to observe application state after a network response unless Blackbox has direct evidence.
-- Connected-request evidence is conservative; temporal proximity alone does not create a relationship.
-- Exact response-data relationships only use response bodies already loaded by the existing debugger; Request Stories does not fetch extra bodies solely for relationship discovery.
+- Connected-request evidence remains conservative; temporal proximity alone does not create a relationship.
+- Exact response-data relationships only use response bodies already loaded by the existing debugger.
 - Blackbox does not perform framework-specific component analysis or arbitrary third-party source fetching.
 
 ## Updating this file

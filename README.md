@@ -4,33 +4,70 @@
 
 Blackbox is an open-source Chromium DevTools extension for capturing, inspecting, explaining, and visually tracing the network activity of the page you are debugging.
 
-Blackbox combines deterministic request diagnostics, source context, exact response/resource provenance, session-level pattern detection, a visual **Request Stories** debugging workspace, and a Response Explorer that turns nested JSON into navigable JavaScript data paths.
+Blackbox combines a session Dashboard, searchable request capture, deterministic request diagnostics, source context, exact response/resource provenance, a visual **Request Stories** workspace, an evidence-first **Request Lifecycle**, and a Response Explorer that turns nested JSON into navigable JavaScript data paths.
 
 ## Release status
 
 | Status | Version | Channel | Health |
 | --- | --- | --- | --- |
-| **Release candidate** | `v0.4.0` | Local / trusted testing; Chrome Web Store submission next | Working in automated and manual testing |
-| **Latest Stable** | `v0.2.0` | Chrome Web Store | Working / verified |
-| **Superseded Preview** | `v0.3.0` | Local/testing history | Working; functionality included in v0.4.0 |
-| **Superseded Stable** | `v0.1.2` | Chrome Web Store history | Working, superseded by v0.2.0 |
+| **Release candidate** | `v0.5.0` | Local / trusted testing; Chrome Web Store submission next | Working in automated testing; exact merged/tagged package verification still required |
+| **Superseded Production Preview** | `v0.4.0` | Public Chrome Web Store build, published Sep 5, 2026 | Publicly distributed; full post-publication Stable verification was not completed before v0.5.0 superseded it |
+| **Last Stable-verified baseline** | `v0.2.0` | Production history | Working / verified through the repository Stable gate |
+| **Superseded Preview** | `v0.3.0` | Local/testing history | Working; functionality included in later releases |
+| **Superseded Stable** | `v0.1.2` | Chrome Web Store history | Working, superseded by later releases |
 | **Retired** | `v0.1.0` | Chrome Web Store history | **Broken — do not recommend** |
 
-`v0.4.0` remains **Preview / release candidate** until the exact packaged build is submitted to the Chrome Web Store and the distributed build passes the [Stable release gate](docs/release-policy.md). See the [current release status](docs/release-status.md) and the v0.4.0 release-verification issue for the source-of-truth release state.
+`v0.5.0` remains **Preview / release candidate** until the exact merged/tagged package is submitted to the Chrome Web Store and the distributed build passes the [Stable release gate](docs/release-policy.md). See the [current release status](docs/release-status.md) and **#25 — Release verification: v0.5.0** for the source-of-truth release state.
 
-`v0.3.0` was superseded before production verification. Its Request Debugger/source-context functionality is included in v0.4.0, so it does not need a separate Web Store release.
+`v0.4.0` was successfully published with **Public** visibility in the Chrome Web Store on September 5, 2026. It is now a **superseded Production Preview**: the public build did not finish Blackbox's full post-publication Stable verification before v0.5.0 superseded it. Its Request Stories and debugger/source-context functionality is included in v0.5.0.
 
-## What's new in v0.4.0
+## What's new in v0.5.0
+
+### Dashboard and focused workspaces
+
+Blackbox now opens on a **Dashboard** that summarizes the current capture session and points directly to useful investigations. Session-level statistics and insights no longer permanently consume vertical space above Requests and Request Stories.
+
+The primary workspaces are:
+
+- **Dashboard** — session health, actionable problems, top endpoints/domains, and recent requests;
+- **Requests** — search/filter/paginate the full captured request collection;
+- **Request Stories** — symptom-first visual investigation with stable snapshots.
+
+Selecting a request opens a full-width investigation instead of squeezing details into a persistent side panel.
+
+The request workspace provides:
+
+```text
+Summary · Lifecycle · Diagnose · Request · Response · Timing · Headers
+```
+
+Back returns to the originating workspace and restores relevant search/filter/page, scrolling, and focus where possible.
+
+### Request Lifecycle
+
+A selected request can now be followed through:
+
+```text
+Initiator → Request → Send → Wait → Response → Parse → Data ready → Use data → back to code
+```
+
+On roomy panels the lifecycle is displayed as a circular SVG track with native DOM checkpoint controls. Narrow or short DevTools panels use the same model in a vertical stepper rather than shrinking the ring into an unreadable graphic.
+
+Each checkpoint explains the observed state, evidence, and useful next action. The lifecycle deliberately separates HTTP/network evidence from application-side handling.
+
+A successful HTTP response does **not** prove that the inspected page later parsed or used the data successfully. For live traffic, **Parse**, **Data ready**, and **Use data** remain **Not observed** unless Blackbox has direct evidence. Blackbox's own local JSON inspection is never presented as application telemetry.
+
+Three local learning examples demonstrate a fully completed lifecycle, a 404 whose JSON can still be parsed, and a simulated parsing failure.
 
 ### Request Stories
 
-The old free-moving network graph has been replaced by a stable visual debugging workspace designed around questions a developer actually asks.
+Request Stories remains the stable visual debugging workspace designed around questions a developer actually asks.
 
 Start with:
 
 - **Explore** — browse captured API endpoints;
 - **What failed?** — prioritize requests with HTTP/network problems;
-- **What is slow?** — find calls taking more than the current slow threshold;
+- **What is slow?** — find slow calls;
 - **What repeats?** — find endpoints called multiple times without automatically declaring those calls accidental duplicates.
 
 Choose a request and Blackbox explains it as:
@@ -39,7 +76,7 @@ Choose a request and Blackbox explains it as:
 Your code → HTTP exchange → Returned data
 ```
 
-Each stage links into the same technical request inspector used by the Requests table.
+Each stage can open the same full-width request workspace used by the Requests table.
 
 Request Stories also provides:
 
@@ -55,7 +92,7 @@ Request Stories also provides:
 
 ### Evidence instead of invented causation
 
-Request Stories deliberately avoids turning a busy session into a speculative dependency diagram.
+Blackbox deliberately avoids turning a busy session into a speculative dependency or application-state diagram.
 
 Connected evidence can include:
 
@@ -63,23 +100,24 @@ Connected evidence can include:
 - redirect/preflight candidates supported by request metadata;
 - exact resource URLs found inside an earlier **already-loaded** JSON response.
 
-Requests occurring close together are not automatically considered related. Request Stories also does not claim that an HTTP `200` proves the application later parsed or rendered the data correctly.
+Requests occurring close together are not automatically considered related. Blackbox also does not claim that an HTTP `200` proves the application later parsed, accessed, or rendered the data correctly.
 
 ### Stable interaction and bounded performance
 
-Request Stories uses ordinary DOM controls and native scrolling rather than a transformed canvas. This avoids canvas-coordinate hit-target drift after scrolling, resizing, or zoom changes.
+The active visual workflows use ordinary DOM controls and native scrolling rather than transformed canvas interaction.
 
 For large sessions:
 
-- analysis is bounded to the newest 5,000 captured requests;
-- endpoint cards are rendered in pages of 40;
-- the selected story stays in place as new traffic arrives;
-- incoming calls update a refresh counter rather than forcing a live rearrangement;
-- the complete captured request collection remains available in the Requests view.
+- Request Stories analysis is bounded to the newest 5,000 captured requests;
+- Request Stories endpoint cards are rendered in pages of 40;
+- the Requests workspace renders bounded pages of 200 rows while retaining access to the complete capture;
+- hidden Dashboard/request-table views are not rebuilt during request investigation;
+- incoming capture rendering is coalesced;
+- selected investigations are guarded against stale late response/source callbacks.
 
 ### Request Debugger and source context
 
-v0.4.0 also carries forward all of the v0.3.0 debugger work:
+v0.5.0 carries forward the debugger/source-context work:
 
 - deterministic **Request Diagnosis** for successful and problematic requests;
 - common HTTP, authentication, routing, validation, rate-limit, server, network, cache, redirect, payload, and performance explanations;
@@ -105,8 +143,11 @@ The visual Response Explorer remains available:
 ## What it does
 
 - Captures completed DevTools network requests in real time.
+- Opens a Dashboard that summarizes session health and useful next investigations.
 - Normalizes Chromium/HAR-style request data into a stable internal model.
-- Filters traffic by resource type and errors.
+- Searches and filters traffic by resource type, errors, slow requests, and session-derived selections.
+- Opens selected requests in a full-width Summary / Lifecycle / Diagnose / Request / Response / Timing / Headers workspace.
+- Visualizes the evidence-backed request lifecycle without inventing unobserved application behavior.
 - Inspects request metadata, query parameters, headers, bodies, timing, priority, initiator, source context, and server information.
 - Loads captured response bodies locally when a request is selected rather than replaying the network request.
 - Explores JSON responses as a collapsible tree with copyable JavaScript property paths.
@@ -129,6 +170,18 @@ Blackbox prefers evidence in roughly this order:
 
 Blackbox does not rename generated `.js` files to `.ts`, `.tsx`, `.jsx`, or another source language based on framework guesses. If the evidence is ambiguous, it keeps the generated fallback rather than inventing a source file.
 
+## Request Lifecycle behavior
+
+The lifecycle is an explanation of evidence, not a general JavaScript execution tracer.
+
+For a captured request Blackbox can reliably show network/HTTP facts such as the captured request, available HAR timing phases, and the HTTP response. It can also inspect already-loaded response content locally.
+
+That does **not** establish that the inspected application called a particular body reader, resolved a parsing Promise, accessed a specific property, or rendered the result. Unsupported application stages remain explicitly unknown.
+
+Issue #9 tracks the future possibility of an explicit opt-in application observer. Any such observer must preserve page behavior, correlate concurrent calls reliably, clean up on navigation/revoke, remain bounded/local, and avoid guessed URL/time-only matches.
+
+See [docs/request-lifecycle.md](docs/request-lifecycle.md) for the detailed evidence model and [docs/workspace-navigation.md](docs/workspace-navigation.md) for navigation/state rules.
+
 ## Request Stories behavior
 
 Request Stories is intentionally not a giant live dependency graph.
@@ -139,11 +192,11 @@ The workflow is:
 2. Select a captured request/endpoint.
 3. Read the request outcome.
 4. Follow **Your code → HTTP exchange → Returned data**.
-5. Use **What to check next** to open the most relevant technical evidence.
+5. Open the selected request's full-width workspace when deeper evidence is needed.
 6. Review connected requests only when Blackbox has evidence for the relationship.
 7. Refresh the snapshot when you want newly captured calls included.
 
-The Requests table remains the authoritative full captured dataset. Request Stories is a bounded explanation/projection over that data, not a reduced capture mode.
+The Requests workspace remains the authoritative full captured dataset. Request Stories is a bounded explanation/projection over that data, not a reduced capture mode.
 
 ## Install from source
 
@@ -188,7 +241,7 @@ npm run typecheck
 npm test
 ```
 
-CI performs a clean install, typecheck, full test run, production build, and extension-bundle verification.
+CI performs a clean install, typecheck, full test run, production build, extension-bundle verification, and Chromium lifecycle/workspace regression checks.
 
 ## Architecture
 
@@ -200,12 +253,16 @@ Chromium DevTools network/source APIs
        NormalizedRequest
         ↙            ↘
 request analyzer  session analyzer
-        ↓
- diagnostic analyzer
+        ↓                 ↓
+ diagnostic analyzer   Dashboard
         ↓
  source/provenance context
         ↓
- request debugger + response explorer
+ full-width request workspace
+ Summary / Lifecycle / Diagnose
+ Request / Response / Timing / Headers
+        ↓
+ Response Explorer + Request Lifecycle
 
 NormalizedRequest[]
         ↓
@@ -216,7 +273,7 @@ NormalizedRequest[]
  Request Stories UI
 ```
 
-See [docs/architecture.md](docs/architecture.md) for the responsibilities and privacy boundaries, and [docs/request-stories.md](docs/request-stories.md) for the Request Stories model, evidence rules, performance bounds, and acceptance guidance.
+See [docs/architecture.md](docs/architecture.md), [docs/request-stories.md](docs/request-stories.md), [docs/request-lifecycle.md](docs/request-lifecycle.md), and [docs/workspace-navigation.md](docs/workspace-navigation.md) for the detailed responsibilities, evidence rules, and privacy/state boundaries.
 
 ## Privacy and security
 
@@ -224,7 +281,9 @@ Blackbox's core function requires it to inspect sensitive network and website co
 
 Blackbox processes this context locally in the DevTools extension and does not send captured traffic or inspected source content to a Blackbox-operated backend. Selecting a request automatically retrieves its captured response body. Derived-resource tracing may inspect a bounded set of recent successful Fetch/XHR responses, and source correlation may inspect DevTools-exposed source resources plus bounded same-origin source maps associated with captured scripts.
 
-Request Stories does **not** load additional response bodies merely to build relationships and does not replay requests. Its Learning example uses local simulated data and does not contact the inspected page.
+Request Stories does **not** load additional response bodies merely to build relationships and does not replay requests. Request Stories and Request Lifecycle learning examples use local simulated data and do not contact the inspected page.
+
+v0.5.0 does not add page instrumentation or wrap `fetch`, Promises, `Response` readers, or arbitrary application property access.
 
 The built-in Copy Debug Summary intentionally omits raw headers, cookies, authorization values, and request/response bodies.
 
@@ -239,6 +298,7 @@ Good contribution areas include:
 - new deterministic request/session analyzers with low false-positive rates;
 - source-map/bundler correlation with conservative fallbacks;
 - Request Stories evidence, performance, accessibility, and responsive behavior;
+- Request Lifecycle evidence/presentation without speculative application state;
 - richer response exploration and formatting;
 - browser compatibility fixes;
 - tests and realistic network fixtures;
@@ -248,7 +308,7 @@ Good contribution areas include:
 
 See [Roadmap: Blackbox API Visualizer v1.0.0](https://github.com/medkit992/Blackbox-API-Visualizer/issues/13) for the planned product direction and v1 feature set.
 
-The Response Explorer (#4) shipped in v0.2.0, the Request Debugger (#6) was built in v0.3.0 and is carried forward in v0.4.0, and the visual request-flow work (#3) ships as Request Stories in v0.4.0. Deeper source inspection remains tracked in #17. The request-feed redesign (#2), Simple/Technical modes (#10), contextual explanations (#21), and the broader final usability/performance polish are intentionally reserved for the v1.0.0 student-ready release pass.
+The Response Explorer (#4) shipped in v0.2.0, Request Diagnosis (#6) was developed in v0.3.0, Request Stories (#3) was developed and publicly shipped in v0.4.0, and the lifecycle/network-vs-application model (#5/#7) plus workspace/navigation foundation ship together in v0.5.0. Issue #9 remains open for possible safe application-side async instrumentation. Deeper source inspection remains tracked in #17. The request-feed redesign (#2), Simple/Technical modes (#10), contextual explanations (#21), and broader student-ready polish remain part of the final v1.0.0 pass.
 
 ## Support development
 

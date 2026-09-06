@@ -4,6 +4,52 @@ All notable user-facing changes to Blackbox API Visualizer are documented here.
 
 Blackbox is pre-1.0; minor releases may still evolve quickly while the core workflow stabilizes.
 
+## [0.5.0] - 2026-09-06
+
+### Added
+
+- A new **Dashboard** landing workspace with session counts, reported response size, capture span, actionable error/slow-request cards, session-pattern insights, top endpoints/domains, and recent requests.
+- A full-width selected-request investigation workspace with dedicated **Summary**, **Lifecycle**, **Diagnose**, **Request**, **Response**, **Timing**, and **Headers** destinations.
+- An evidence-first **Request Lifecycle** visualization with eight checkpoints: Initiator → Request → Send → Wait → Response → Parse → Data ready → Use data → back to code.
+- A circular lifecycle ring on roomy panels and a compact vertical stepper on narrow/short DevTools layouts.
+- Clickable lifecycle checkpoints with plain-language evidence, next steps, and navigation into the relevant Blackbox technical view.
+- Three isolated lifecycle learning examples covering a successful flow, a 404 with valid JSON, and a 200 response with a simulated parse failure.
+- Request-table text search, a Slow filter, and bounded 200-row pagination while retaining access to every captured request.
+- Workspace/navigation architecture documentation plus 25 workspace-model tests.
+- A production-panel Chromium regression fixture that exercises the built extension UI with mocked Chrome DevTools APIs.
+
+### Changed
+
+- Removed the cramped persistent request-details side panel; selecting a request now uses the full Blackbox workspace.
+- Session-level summary/insight content now lives on Dashboard instead of permanently consuming vertical space above Requests and Request Stories.
+- The old overloaded Overview page is replaced by focused request-level destinations so Lifecycle and Diagnose can grow without creating one giant scrolling page.
+- Back navigation restores the originating Dashboard, Requests, or Request Stories context, including relevant search/filter/page, scroll position, and focus where possible.
+- Request-level tools reuse mounted UI so Response Explorer Tree/Raw state and lifecycle selection/example state survive tab changes.
+- Request Stories keeps its stable-snapshot model and now opens the same full-width request workspace when deeper inspection is requested.
+- Network success, HTTP failure, response-format evidence, and unobserved application handling are explicitly separated in lifecycle wording.
+
+### Performance / reliability
+
+- Hidden Dashboard/request-table views are not rebuilt while a request investigation is open.
+- Incoming capture rendering is coalesced and request-table rendering is paginated for long sessions.
+- Back/primary navigation use the same close/reset path and preserve the existing generation guards against stale late response/source callbacks.
+- Clear, page navigation, and privacy revoke reset workspace state instead of allowing a hidden request investigation to reappear.
+- Pause state is resynchronized after consent changes.
+- Regression coverage now includes full-width routing, Back/search/page/scroll/focus restoration, lifecycle/Response Explorer state, Request Stories restoration, keyboard navigation, late callbacks, Clear/navigation/revoke/Pause, escaping, simulated zoom hit targets, and forced colors.
+
+### Security / privacy
+
+- v0.5.0 adds no new host permission, remote service, page instrumentation, request replay, or application-code injection.
+- Live **Parse / Data ready / Use data** lifecycle checkpoints remain explicitly **Not observed** unless Blackbox has real evidence; local JSON inspection is never presented as application telemetry.
+- Lifecycle examples are local simulated data and never enter the inspected page's capture/session data.
+- Existing selected-response, source-map, provenance, consent, and privacy-safe debug-summary behavior is retained.
+
+### Release notes
+
+- Issues #5 and #7 are fulfilled by the evidence-first lifecycle/network-vs-application model in this release.
+- Issue #9 remains open for a future opt-in application observer that can safely verify Promise/body-reader/parsing stages without altering page behavior.
+- v0.4.0 reached the public Chrome Web Store on September 5, 2026, then was superseded before completing the repository's full post-publication Stable verification; its Request Stories and debugger/source-context work are included in v0.5.0.
+
 ## [0.4.0] - 2026-09-05
 
 ### Added
@@ -30,6 +76,11 @@ Blackbox is pre-1.0; minor releases may still evolve quickly while the core work
 - Short panels compact presentation chrome while preserving readable explanation text and native hit targets.
 - The Privacy/consent dialog remains scrollable so Accept, Close, and Revoke controls stay reachable in short DevTools panes.
 - v0.4.0 includes all v0.3.0 Request Debugger/source-context work and supersedes the unfinished v0.3.0 release candidate before that version was promoted to Stable.
+
+### Release status
+
+- v0.4.0 was successfully published with **Public** visibility in the Chrome Web Store on September 5, 2026.
+- The project moved to v0.5.0 before the distributed v0.4.0 build completed the repository's full post-publication Stable verification gate, so v0.4.0 is retained as a **superseded Production Preview**, not a broken release.
 
 ### Performance / reliability
 
@@ -95,7 +146,7 @@ Blackbox is pre-1.0; minor releases may still evolve quickly while the core work
 - Added the visual Tree / Raw Response Explorer.
 - Added collapsible JSON objects/arrays, value-type display, JavaScript response-path generation, and Copy Path.
 - Added graceful fallbacks for non-JSON, image, empty, loading, and unavailable response bodies.
-- Verified through the Chrome Web Store and remains the current Stable production release until a later Web Store build passes the Stable gate.
+- Verified through the Chrome Web Store and remains the last release to complete the repository's full Stable verification gate before the v0.4 public Preview and v0.5 release candidate.
 
 ## [0.1.2]
 
