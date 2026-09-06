@@ -1,7 +1,10 @@
+import "./request-lifecycle.css";
+import { createRequestLifecycleView } from "./request-lifecycle.js";
 import type { RequestDiagnosis } from "../network/diagnosticRules.js";
 import type { NormalizedRequest } from "../network/types.js";
 
 const diagnosisRoot = document.getElementById("request-diagnosis");
+const lifecycleView = diagnosisRoot ? createRequestLifecycleView(diagnosisRoot) : null;
 const diagnosisSeverity = document.getElementById("diagnosis-severity");
 const diagnosisConfidence = document.getElementById("diagnosis-confidence");
 const diagnosisTitle = document.getElementById("diagnosis-title");
@@ -97,6 +100,7 @@ export function renderRequestDiagnosis(
   request: NormalizedRequest,
   diagnosis: RequestDiagnosis
 ): void {
+  lifecycleView?.render(request);
   if (diagnosisRoot) {
     diagnosisRoot.dataset.diagnosisState = diagnosis.severity;
     diagnosisRoot.className = `request-diagnosis request-diagnosis--${diagnosis.severity}`;
@@ -154,6 +158,7 @@ export function renderRequestDiagnosis(
 }
 
 export function resetRequestDiagnosis(): void {
+  lifecycleView?.reset();
   if (diagnosisRoot) {
     diagnosisRoot.dataset.diagnosisState = "idle";
     diagnosisRoot.className = "request-diagnosis request-diagnosis--idle";
