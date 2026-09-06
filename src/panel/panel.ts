@@ -56,7 +56,7 @@ function resetPanelState(): void {
   // Release detached sensitive rows immediately, even if their workspace is hidden.
   requestList.replaceChildren();
   for (const id of ["dashboard-recent-list", "session-issues-list", "session-endpoints-list", "session-domains-list"]) document.getElementById(id)?.replaceChildren();
-  for (const element of document.querySelectorAll<HTMLElement>(".details-grid dd, #details-query, #details-request-body, #details-request-headers, #details-response-headers, #details-timings, #details-path, #details-method, #details-status, #details-status-text, #request-duration")) { element.textContent = ""; element.removeAttribute("title"); }
+  for (const element of Array.from(document.querySelectorAll<HTMLElement>(".details-grid dd, #details-query, #details-request-body, #details-request-headers, #details-response-headers, #details-timings, #details-path, #details-method, #details-status, #details-status-text, #request-duration"))) { element.textContent = ""; element.removeAttribute("title"); }
   nav.reset(); renderVisibleView();
 }
 chrome.devtools.network.onNavigated.addListener(() => {

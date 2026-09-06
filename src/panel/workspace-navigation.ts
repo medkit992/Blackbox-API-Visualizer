@@ -43,7 +43,7 @@ export function createWorkspaceNavigation(onViewChanged: (view: WorkspaceView) =
       focus,
       key: focus?.dataset.key, inspect: focus?.dataset.inspect,
       requestId: focus?.closest<HTMLElement>("[data-request-id]")?.dataset.requestId,
-      scroll: [root, ...root.querySelectorAll<HTMLElement>("[data-preserve-scroll], .rs-root, .rs-rail, .rs-content, .rs-endpoints")]
+      scroll: [root, ...Array.from(root.querySelectorAll<HTMLElement>("[data-preserve-scroll], .rs-root, .rs-rail, .rs-content, .rs-endpoints"))]
         .map(element => ({ element, top: element.scrollTop, left: element.scrollLeft })),
     });
   }
