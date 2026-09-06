@@ -4,23 +4,23 @@ This file is the human-readable source of truth for which Blackbox builds are re
 
 | Version | Stage | Channel | Health | Recommendation |
 | --- | --- | --- | --- | --- |
-| `v0.5.0` | Preview / release candidate | Local / trusted testing; Chrome Web Store submission next | Working in automated testing; owner release-package verification still required | Merge/package/submit after final owner smoke test; mark Stable only after the actual Web Store build passes verification |
-| `v0.4.0` | Retired / superseded Preview | Local/testing history | Working, but superseded before production promotion | Do not ship separately; Request Stories/debugger work is included in v0.5.0 |
-| `v0.3.0` | Retired / superseded Preview | Local/testing history | Working, but superseded before production verification | Do not ship separately; its debugger/source-context work is included in v0.5.0 |
-| `v0.2.0` | Stable | Production (Chrome Web Store) | Working / verified | Current recommended production release until v0.5.0 passes production verification |
-| `v0.1.2` | Retired / superseded Stable | Production history | Working, superseded by v0.2.0 | Do not recommend over v0.2.0 |
+| `v0.5.0` | Preview / release candidate | Local / trusted testing; Chrome Web Store submission next | Working in automated testing; exact merged/tagged package verification still required | Merge/package/smoke-test, then tag/release/submit; mark Stable only after the actual Web Store build passes verification |
+| `v0.4.0` | Retired / superseded Production Preview | Production / Public (Chrome Web Store, published Sep 5, 2026) | Published publicly and working in pre-publication testing; full distributed-build Stable verification was not completed before supersession | Do not continue separate v0.4 Stable promotion; move forward with v0.5.0 |
+| `v0.3.0` | Retired / superseded Preview | Local/testing history | Working, but superseded before production verification | Do not ship separately; its debugger/source-context work is included in later releases |
+| `v0.2.0` | Stable baseline | Production history | Working / verified | Last release to complete the repository's full Stable verification gate |
+| `v0.1.2` | Retired / superseded Stable | Production history | Working, superseded by later releases | Do not recommend over later builds |
 | `v0.1.1` | Retired / superseded | Production history | Superseded by later releases | Do not recommend |
 | `v0.1.0` | Retired | Production history | Broken | Do not recommend |
 
 ## Current recommendation
 
-`v0.2.0` remains the current **Stable / Production / Working** Chrome Web Store release until the exact `v0.5.0` package is submitted, installed from the Chrome Web Store, and passes the Stable release gate.
+`v0.5.0` is the current **Preview / release candidate**. It combines the debugger/source-context foundation, Request Stories, the new full-width workspace/navigation system, Dashboard, and the evidence-first Request Lifecycle. Track its release gate in **#25 — Release verification: v0.5.0**.
 
-`v0.5.0` is the current **Preview / release candidate**. It combines the debugger/source-context foundation, Request Stories, the new full-width workspace/navigation system, Dashboard, and the evidence-first Request Lifecycle. Track its release gate in the v0.5.0 release-verification issue.
+`v0.4.0` reached the **public Chrome Web Store** on September 5, 2026. It is now classified as a **superseded Production Preview**: the build was publicly distributed, but the repository's full post-publication Stable verification was not completed before v0.5.0 superseded it. Historical verification is preserved in #23.
 
-`v0.4.0` is retired as a **superseded Preview**. It was not promoted to Stable before v0.5.0 replaced it; its Request Stories and debugger/source-context functionality is carried forward into v0.5.0.
+`v0.2.0` remains the last build that completed the repository's full **Stable / Working** verification gate. The release process deliberately distinguishes a build being publicly distributed from that build completing Blackbox's post-distribution Stable verification.
 
-`v0.3.0` remains retired as a **superseded Preview**. It was never promoted to Stable through the production verification path.
+`v0.3.0` remains retired as a **superseded Preview** and was never promoted through production verification.
 
 ## v0.5.0 release focus
 
