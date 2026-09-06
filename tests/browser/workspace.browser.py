@@ -220,12 +220,17 @@ try:
         # Escaped URL content cannot become UI markup.
         page.evaluate("qa.emit({path:'/literal/<img src=x onerror=alert(1)>'})")
         assert page.locator("#dashboard-recent-list img").count() == 0
+        # CSS zoom is a hit-target simulation, not native browser/DevTools zoom.
+        # Unlike a real browser zoom, it does not change the layout viewport.
         for zoom in [1.25, 2]:
             page.evaluate("z => {const app=document.querySelector('.app');app.style.zoom=z;app.style.width=(100/z)+'vw';app.style.height=(100/z)+'vh'}", zoom)
             page.locator(".dashboard-recent-row").click(); tab(page, "lifecycle")
             page.locator('.lc-checkpoint[data-step="response"]').click()
             expect(page.locator('.lc-checkpoint[data-step="response"]')).to_have_attribute("aria-pressed", "true")
             page.locator("#close-details").click()
+        # Restore the actual viewport before independent forced-colors bounds.
+        # Keeping synthetic CSS zoom here conflates two different test layouts.
+        page.evaluate("() => {const app=document.querySelector('.app');for (const name of ['zoom','width','height']) app.style.removeProperty(name)}")
         page.emulate_media(reduced_motion="reduce", forced_colors="active")
         first_request(page); tab(page, "diagnosis"); check_bounds(page)
         results.append({"escaping_zoom_forced_colors": "pass"})
